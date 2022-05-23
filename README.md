@@ -1,3 +1,5 @@
-# Getting Started with Microbioma Data Analysis in R PART 1
+# Microbiome Data Processing in R
 
-![Workflow for getting started with microbiome data analysis.](img/part1.png)
+![Microbiome Data Processing in R.](img/part2.png)
+
+...In Progress...

@@ -7,7 +7,7 @@ book_filename: "microbiome-part3"
 output_dir:
 rmd_files: [
 "index.Rmd",
-"03a_abund_data.Rmd",
+"03a_data_prep.Rmd",
 "99_appendix.Rmd",
 "999-references.Rmd"
 ]
