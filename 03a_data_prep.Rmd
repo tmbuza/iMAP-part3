@@ -1,0 +1,78 @@
+# (PART) DATA PREPARATION {-}
+
+# Tidying Mothur Output
+
+## Import libraries and functions
+```{r warning=FALSE, include=FALSE}
+source("R/common.R")
+
+```
+
+## Prerequisite
+We need three files generated from previous analysis.
+
+1. Metadata: generated in PART 1 user guide.
+2. Mothur OTU tables: generated in PART 2 user guide.
+3. Mothur conserved taxonomy tables generated in PART 2 user guide.
+
+
+## Prepare tidy otutable
+
+```{r}
+library(tidyverse)
+
+mothur_otupath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part2/data/final.opti_mcc.shared"
+long_otutable <- read_tsv(mothur_otupath, show_col_types = FALSE) %>% 
+  select(-label, -numOtus) %>% 
+  rename(sample_id = Group) %>% 
+  rename_all(tolower) %>% 
+  mutate_if(is.numeric, ~replace(., is.na(.), 0)) %>% 
+  pivot_longer(-sample_id, names_to="otu", values_to="count") %>% 
+  filter(count != 0)
+
+head(long_otutable)
+```
+
+## Prepare tidy taxonomy table
+```{r}  
+taxlevels <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus")
+
+mothur_taxpath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part2/data/final.opti_mcc.0.03.cons.taxonomy"
+taxonomy <- read_tsv(mothur_taxpath, show_col_types = F) %>%
+  rename_all(tolower) %>%
+  select(otu, taxonomy) %>%
+  mutate(otu = tolower(otu),
+         taxonomy = str_replace_all(taxonomy, "\\(\\d+\\)", ""),
+         taxonomy = str_replace(taxonomy, ";unclassified", "_unclassified"),
+         taxonomy = str_replace_all(taxonomy, ";unclassified", ""),
+         taxonomy = str_replace_all(taxonomy, ";$", ""),
+         taxonomy = str_replace_all(taxonomy, ".*;", "")
+         )
+head(taxonomy)
+```
+
+## Load preprocessed tidy metadata
+```{r}
+metapath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part1/RDataRDS/metadata.rds"
+metadata <- readRDS(metapath) %>% 
+  select(sample_id, ecosystem, isolate)
+
+head(metadata)
+```
+
+## Merge OTU, taxonomy and metadata
+```{r}
+composite <- inner_join(long_otutable, taxonomy, by="otu") %>%
+  group_by(sample_id, taxonomy) %>%
+  summarize(count = sum(count), .groups="drop") %>%
+  group_by(sample_id) %>%
+  mutate(rel_abund = count / sum(count)) %>% 
+  ungroup() %>%
+  select(-count) %>%
+  inner_join(metadata, ., by="sample_id")
+
+head(composite)
+
+write_csv(composite, "RDataRDS/genus_composite.csv" )
+saveRDS(composite, "RDataRDS/genus_composite.rds" )
+```
