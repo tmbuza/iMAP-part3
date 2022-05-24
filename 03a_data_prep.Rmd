@@ -1,6 +1,6 @@
 # (PART) DATA PREPARATION {-}
 
-# Tidying Mothur Output
+# Tidying and merging Mothur Output
 
 ## Import libraries and functions
 ```{r warning=FALSE, include=FALSE}
@@ -16,13 +16,13 @@ We need three files generated from previous analysis.
 3. Mothur conserved taxonomy tables generated in PART 2 user guide.
 
 
-## Prepare tidy otutable
+## Prepare tidy mothur otutable
 
 ```{r}
 library(tidyverse)
 
 mothur_otupath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part2/data/final.opti_mcc.shared"
-long_otutable <- read_tsv(mothur_otupath, show_col_types = FALSE) %>% 
+shared_long <- read_tsv(mothur_otupath, show_col_types = FALSE) %>% 
   select(-label, -numOtus) %>% 
   rename(sample_id = Group) %>% 
   rename_all(tolower) %>% 
@@ -30,15 +30,15 @@ long_otutable <- read_tsv(mothur_otupath, show_col_types = FALSE) %>%
   pivot_longer(-sample_id, names_to="otu", values_to="count") %>% 
   filter(count != 0)
 
-head(long_otutable)
+head(shared_long)
 ```
 
-## Prepare tidy taxonomy table
+## Prepare tidy mothur taxonomy table
 ```{r}  
 taxlevels <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus")
 
 mothur_taxpath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part2/data/final.opti_mcc.0.03.cons.taxonomy"
-taxonomy <- read_tsv(mothur_taxpath, show_col_types = F) %>%
+cons_taxonomy <- read_tsv(mothur_taxpath, show_col_types = F) %>%
   rename_all(tolower) %>%
   select(otu, taxonomy) %>%
   mutate(otu = tolower(otu),
@@ -48,7 +48,7 @@ taxonomy <- read_tsv(mothur_taxpath, show_col_types = F) %>%
          taxonomy = str_replace_all(taxonomy, ";$", ""),
          taxonomy = str_replace_all(taxonomy, ".*;", "")
          )
-head(taxonomy)
+head(cons_taxonomy)
 ```
 
 ## Load preprocessed tidy metadata
@@ -60,9 +60,14 @@ metadata <- readRDS(metapath) %>%
 head(metadata)
 ```
 
-## Merge OTU, taxonomy and metadata
+## Merge mothur output
+- We will merge the output at genus-level.
+- OTU table or shared table
+- Taxonomy
+- Metadata
+
 ```{r}
-composite <- inner_join(long_otutable, taxonomy, by="otu") %>%
+mothur_genus_composite <- inner_join(shared_long, cons_taxonomy, by="otu") %>%
   group_by(sample_id, taxonomy) %>%
   summarize(count = sum(count), .groups="drop") %>%
   group_by(sample_id) %>%
@@ -71,8 +76,89 @@ composite <- inner_join(long_otutable, taxonomy, by="otu") %>%
   select(-count) %>%
   inner_join(metadata, ., by="sample_id")
 
-head(composite)
+head(mothur_genus_composite)
 
-write_csv(composite, "RDataRDS/genus_composite.csv" )
-saveRDS(composite, "RDataRDS/genus_composite.rds" )
+write_csv(mothur_genus_composite, "RDataRDS/mothur_genus_composite.csv" )
+saveRDS(mothur_genus_composite, "RDataRDS/mothur_genus_composite.rds" )
+```
+
+<br>
+
+
+# Tidying and merging QIIME2 output
+
+## Import libraries and functions
+```{r warning=FALSE, include=FALSE}
+source("R/common.R")
+
+```
+
+## Prerequisite
+W need three files as in Mothur:
+
+- Feature table
+- Taxonomy table
+- Metadata table
+
+## Prepare qiime2 feature table 
+
+```{r}
+q2_otupath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part2/data/q2-transformed-tables/feature-table.tsv"
+
+q2_feature_long <- read_tsv(q2_otupath, skip = 1, show_col_types = F) %>%
+  rename(otu = "#OTU ID") %>% 
+  mutate_if(is.numeric, ~replace(., is.na(.), 0)) %>% 
+  pivot_longer(-otu, names_to="sample_id", values_to="count") %>%
+  relocate(otu, .after = "sample_id") %>% 
+  filter(count != 0)
+
+head(q2_feature_long)
+```
+
+## Prepare qiime2 taxonomy 
+
+```{r message=FALSE, warning=FALSE}
+q2_taxpath <- "~/Dropbox/CDILLC/GIT_REPOS/microbiome-part2/data/q2-transformed-tables/taxonomy.tsv"
+taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus", "species")
+
+q2_taxonomy <- read_tsv(q2_taxpath, show_col_types = F) %>%
+  rename_all(tolower) %>%
+  rename(otu = "feature id") %>% 
+  mutate(confidence = round(confidence, digits = 2),
+         taxon = str_replace_all(taxon, "; s__$", ""),
+         taxon = str_replace_all(taxon, "; g__$", ""),
+         taxon = str_replace_all(taxon, "; f__$", ""),
+         taxon = str_replace_all(taxon, "; o__$", ""),
+         taxon = str_replace_all(taxon, "; c__$", ""),
+         taxon = str_replace_all(taxon, "; p__$", ""),
+         taxon = str_replace_all(taxon, "; k__$", ""),
+         taxon = str_replace_all(taxon, "\\[|\\]", ""),
+         ) %>% 
+  separate(col = taxon, into = all_of(taxlevels), sep = "; ") %>%
+  rename_all(tolower) %>% 
+  select(otu, taxonomy = genus) %>% 
+  drop_na()
+
+head(q2_taxonomy)
+```
+
+## Merge qiime2 output
+- We will merge data at genus-level.
+- OTU table or shared table
+- Taxonomy
+- Metadata
+```{r}
+q2_genus_composite <- inner_join(q2_feature_long, q2_taxonomy, by="otu") %>%
+  group_by(sample_id, taxonomy) %>%
+  summarize(count = sum(count), .groups="drop") %>%
+  group_by(sample_id) %>%
+  mutate(rel_abund = count / sum(count)) %>% 
+  ungroup() %>%
+  select(-count) %>%
+  inner_join(metadata, ., by="sample_id")
+
+head(q2_genus_composite)
+
+write_csv(q2_genus_composite, "RDataRDS/q2_genus_composite.csv" )
+saveRDS(q2_genus_composite, "RDataRDS/q2_genus_composite.rds" )
 ```
