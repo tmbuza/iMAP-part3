@@ -1,9 +1,8 @@
+...IN PROGRESS...
+
 # Exploratory Analysis of Microbiome Data
 
 ![Microbiome Data Processing in R.](img/part3_flow.png)
-
-...In Progress...
-
 
 
 The <strong>iMAP-PART3</strong> is one of the <b>practical-user-guide-series</b> for providing analytical support to the microbiome research community. Explore more guides from the table below:
