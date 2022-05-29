@@ -1,7 +1,7 @@
 ---
-title: "Microbiome Data Processing and Visualization in R"
-subtitle: "End-to-End Practical User Guides"
-author: "Teresia Mrema-Buza, A Microbiome Computational Scientist and Owner of the Complex Data Insights, LLC, USA"
+title: "Exploratory Analysis of Microbiome Data"
+subtitle: "End-to-End Practical User Guides for Microbiome Data Analysis"
+author: "Teresia Mrema-Buza, A Microbiome Data Science Enthusiast and Owner of the Complex Data Insights, LLC, USA"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 knit: bookdown::render_book
@@ -36,18 +36,17 @@ knitr::write_bib(c(
 ), 'library/packages.bib')
 ```
 
-```{r setup, include=FALSE}
+```{r setup, echo=FALSE}
 source(file = "R/common.R")
+if (!dir.exists("data")) {dir.create("data")}
 ```
 
-# Microbiome Data Processing in R {-#frontpage}
+# Exploratory Analysis of Microbiome Data {-#frontpage}
 
 ```{r include=FALSE}
 library(DiagrammeR)
 library(DiagrammeRsvg)
-library(rsvg)
 
-# 1. Make a graph
 graph <- DiagrammeR::grViz("
 digraph {
 graph [layout = dot, rankdir = TD]
@@ -61,42 +60,45 @@ penwidth = 2.0]
 
 edge [arrowhead = diamond]
 
-A [label = 'Getting Started', fillcolor = white, penwidth = 5.0]
-B [label = 'Requirements']
-C [label = 'Basic Software']
-D [label = 'Sample Metadata']
-E [label = 'Sequencing Data']
-F [label = 'Analysis & Visualization Tools']
-G [label = 'Preprocessing Tools']
-H [label = 'Bioinformatics Pipelines']
-I [label = 'Mapping Files']
+A [label = 'EXPLORATORY \nANALYSIS OF \nMICROBIOME DATA', fillcolor = white, penwidth = 5.0]
+B [label = 'Preprocesed\nTidy Data']
+C [label = 'Metadata']
+D [label = 'OTU Table']
+E [label = 'Taxonomy Table']
+F [label = 'Composite Object']
+G [label = 'Data\nTansformation']
+H [label = 'Data\nVisualization']
+I [label = 'DEEPER INSIGHTS', fillcolor = white, penwidth = 5.0]
 
 {A}  -> B
 {B}  -> C
 {B}  -> D
 {B}  -> E
 {C}  -> F
-{C}  -> G
-{C}  -> H
-{B}  -> I
+{D}  -> F
+{E}  -> F
+{F}  -> G
+{F}  -> H
+{G}  -> H
+{H}  -> I
 
-}", height = 400, width = 600)
+
+}", height = 500, width = 500)
 
 # 2. Convert to SVG, then save as png
-part3 = DiagrammeRsvg::export_svg(graph)
-part3 = charToRaw(part3) # flatten
-rsvg::rsvg_png(part3, "img/part3.png")
+part3_flow = DiagrammeRsvg::export_svg(graph)
+part3_flow = charToRaw(part3_flow) # flatten
+rsvg::rsvg_png(part3_flow, "img/part3_flow.png")
 ```
 
 
-<a href=""><img src="images/abund_bar.gif" alt="Book cover" width="100%" style="padding: 50px 0px 100px 0px; float: right;"/></a>
-<!-- <a href=""><img src="images/part3_front.png" alt="Book cover" width="100%" style="padding: 50px 0px 100px 0px; float: right;"/></a> -->
+<a href=""><img src="img/part2_bioinfo.png" alt="Book cover" width="100%" style="padding: 50px 0px 50px 0px; float: right;"/></a>
 
 ## Quick Glimpse {-}
-Investigating the role of microbial communities in health and disease requires a thorough knowledge of the entire analytical process. Using wrong approaches can cost a significant amount of dollars and lengthy process to achieve the desired results. This is <b>PART 3</b> of the practical user guides intended to provide analytical support to the microbiome research community. The entire guide is reproducible, allowing users to easily follow along. If interested, user may use this model to publish their findings in a book format.
+Investigating the role of microbial communities in health and disease requires a thorough knowledge of the entire analytical process. Using wrong approaches can cost a significant amount of dollars and lengthy process to achieve the desired results. This is <b>PART 2</b> of the practical user guides intended to provide analytical support to the microbiome research community. The entire guide is reproducible, allowing users to easily follow along. If interested, user may use this model to publish their findings in a book format.
 
 ## Structure of this guide {-}
 This guide is divided into chapters to facilitate easy navigation. Each chapter contains several sections as displayed in the navigation bars on the left and right. Click the hyper-linked text if you want to jump into a specific chapter or section.
 
 ## Code availability {-}
-The code is available at a public [GitHub repository](https://github.com/tmbuza/microbiome-part1/). If interested you can request a consulting service by contacting the developer of this repo using <a href="https://complexdatainsights.com/contact-us">this contact form</a>. 
+The code that generated this guide is available at a public [GitHub repository](https://github.com/tmbuza/iMAP-part2/) or via a [GH-Page](https://tmbuza.github.io/iMAP-part2/). If interested you can request a consulting service by contacting the developer of this repo using <a href="https://complexdatainsights.com/contact-us">this contact form</a>. 
