@@ -1,5 +1,5 @@
 ---
-title: "Exploratory Analysis of Microbiome Data"
+title: "Exploratory Analysis of Microbiome Data in R"
 subtitle: "End-to-End Practical User Guides for Microbiome Data Analysis"
 author: "Teresia Mrema-Buza, A Microbiome Data Science Enthusiast and Owner of the Complex Data Insights, LLC, USA"
 date: "`r Sys.Date()`"
@@ -60,7 +60,7 @@ penwidth = 2.0]
 
 edge [arrowhead = diamond]
 
-A [label = 'EXPLORATORY \nANALYSIS OF \nMICROBIOME DATA', fillcolor = white, penwidth = 5.0]
+A [label = 'EXPLORATORY \nANALYSIS OF \nMICROBIOME DATA', fillcolor = yellow, penwidth = 5.0]
 B [label = 'Preprocesed\nTidy Data']
 C [label = 'Metadata']
 D [label = 'OTU Table']
@@ -68,7 +68,7 @@ E [label = 'Taxonomy Table']
 F [label = 'Composite Object']
 G [label = 'Data\nTansformation']
 H [label = 'Data\nVisualization']
-I [label = 'DEEPER INSIGHTS', fillcolor = white, penwidth = 5.0]
+I [label = 'DEEPER INSIGHTS', fillcolor = yellow, penwidth = 5.0]
 
 {A}  -> B
 {B}  -> C
