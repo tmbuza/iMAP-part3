@@ -1,0 +1,135 @@
+# Data Visualization
+
+## Load data
+```{r}
+source("R/common.R")
+load("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData", verbose = T)
+```
+
+
+## Abundance distribution across samples
+
+```{r m3_taxon_bars, fig.height=6, fig.width=6,  animation.hook="gifski"}
+library(tidyverse, suppressPackageStartupMessages())
+library(gganimate)
+library(gifski)
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(!grepl("\\|p__*", taxonomy)) %>%
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col() +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Kingdom") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(!grepl("\\|c__*", taxonomy),
+                grepl("p__*", taxonomy)) %>%
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col(position = "fill") +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Phylum") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(!grepl("\\|o__*", taxonomy),
+                grepl("c__*", taxonomy)) %>%
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col(position = "fill") +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Class") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(!grepl("\\|f__*", taxonomy),
+                grepl("o__*", taxonomy)) %>%
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col(position = "fill") +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Order") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(!grepl("\\|g__*", taxonomy),
+                grepl("f__*", taxonomy)) %>%
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col(position = "fill") +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Family") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(!grepl("\\|s__*", taxonomy),
+                grepl("g__*", taxonomy)) %>%
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col(position = "fill") +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Genus") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+
+m3_merged_abund_table %>% 
+  select(sample_id, taxonomy, rel_abund) %>% 
+  distinct() %>% 
+  dplyr::filter(grepl("s__*", taxonomy)) %>%
+  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
+  group_by(sample_id, taxonomy, rel_abund) %>%
+  summarise(count = sum(rel_abund),
+            rel_abund = rel_abund/100, .groups = "drop") %>% 
+  select(-count) %>% 
+  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
+  geom_col(position = "fill") +
+  theme_bw() +
+  labs(x = "", y = "Relative Abundance", title = "", fill = "Species") +
+  noxlabels +
+  scale_y_continuous(expand = c(0, 0))
+```
+
+

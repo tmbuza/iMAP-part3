@@ -1,0 +1,56 @@
+# (PART) EXPLORATORY ANALYSIS {-}
+
+# Data Tidying and Transformation
+## Prerequisite
+- Preprocessed metadata.
+- Preprocessed microbial abundance table.
+- Preprocessed taxonomy table.
+
+## Import libraries and functions
+```{r warning=FALSE, include=FALSE}
+source("R/common.R")
+library(tidyverse)
+```
+
+## Load preprocessed data
+```{r}
+load("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData", verbose = T)
+```
+
+## Create composite R objects
+### From `mothur` output
+```{r}
+
+```
+
+
+### From `qiime2` output
+```{r}
+
+```
+
+
+### From `metaphlan` output
+```{r}
+
+```
+
+## Create phyloseq objects
+### From `mothur` output
+```{r}
+
+```
+
+
+### From `qiime2` output
+```{r}
+
+```
+
+
+### From `metaphlan` output
+```{r}
+
+```
+
+
