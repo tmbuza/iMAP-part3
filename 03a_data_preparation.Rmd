@@ -1,6 +1,6 @@
-# (PART) EXPLORATORY ANALYSIS {-}
+# (PART) DATA PREPARATION {-}
 
-# Data Preparation {#data-preparation}
+# Creating Composite R Objects {#data-preparation}
 
 
 ```{block, type="tmbinfo", echo=T}
@@ -24,16 +24,19 @@ library(tidyverse)
 
 ## Load preprocessed data
 ```{r}
-load("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData", verbose = T)
+cat("Metadata\n\n")
+load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
+
+cat("\nOtu and taxonomy tables\n\n")
+load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part2/RDataRDS/otutaxonomy_objects.RData", verbose = T)
+
 ```
 
-## Create composite objects
-
-### From `mothur` output
+## Joining `mothur` output
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
-mo_metadata <- mo_metadata %>% 
+mo_metadata <-  mo_metadata %>% 
   select(sample_id, isolate) %>% 
   drop_na(isolate)
 
@@ -48,7 +51,7 @@ mo_composite <- inner_join(mo_metadata, mo_otu_counts, by = "sample_id") %>%
   group_by(sample_id) %>% 
   mutate(rel_abund = count/sum(count)) %>% 
   ungroup() %>% 
-  select(-count) 
+  relocate(count, .before = rel_abund) 
 
 cat("\nColumn names of the composite file\n")
 colnames(mo_composite)
@@ -64,12 +67,13 @@ mo_composite_long <- mo_composite %>%
 
 
 saveRDS(mo_composite, "RDataRDS/mo_composite.rds")
-resave(mo_composite, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+save(mo_composite_long, file = "RDataRDS/composite_long_objects.RData")
+resave(mo_composite, mo_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
 ```
 
 
 
-### From `qiime2` output
+## Joining `qiime2` output
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
@@ -88,7 +92,7 @@ q2_composite <- inner_join(metadata, otu_counts, by = "sample_id") %>%
   group_by(sample_id) %>% 
   mutate(rel_abund = count/sum(count)) %>% 
   ungroup() %>% 
-  select(-count) 
+  relocate(count, .before = rel_abund)
 
 cat("\nColumn names of the composite file\n")
 colnames(mo_composite)
@@ -103,12 +107,13 @@ q2_composite_long <- q2_composite %>%
   relocate(rel_abund, .after = taxon)
 
 saveRDS(q2_composite, "RDataRDS/q2_composite.rds")
-resave(q2_composite, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+resave(q2_composite_long, file = "RDataRDS/composite_long_objects.RData")
+resave(q2_composite, q2_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
 ```
 
 
-### From `metaphlan` output
-...In Progress...
+## Joining `metaphlan` output
+- Here we create a composite object using default relative abundance output.
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
@@ -116,28 +121,93 @@ metadata <- m3_metadata %>%
   select(sample_id, platform) %>% 
   drop_na(platform)
 
-otu_counts <- m3_otutable %>% 
+m3_rel_otutable <- m3_otutable %>% 
   pivot_longer(-otu, names_to = "sample_id", values_to = "rel_abund") %>% 
   relocate(sample_id, .before = otu)
 
 taxonomy <- m3_taxonomy
 
+m3_rel_composite <- inner_join(metadata, m3_rel_otutable, by = "sample_id") %>% 
+  inner_join( ., m3_taxonomy, by = "otu")
+
+cat("\nColumn names of the composite file\n")
+colnames(m3_rel_composite)
+
+cat("\nDoes the relative abundance adds to 1? Must!\n")
+m3_rel_composite %>% 
+  group_by(sample_id) %>% 
+  summarise(total_re_abund = round(sum(rel_abund)))
+
+m3_rel_composite_long <- m3_rel_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "levels", values_to = "taxon") %>% 
+  relocate(rel_abund, .after = taxon)
+
+
+saveRDS(m3_rel_composite, "RDataRDS/m3_rel_composite.rds")
+resave(m3_rel_composite_long, file = "RDataRDS/composite_long_objects.RData")
+resave(m3_rel_composite, m3_rel_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+```
+### From `metaphlan` estimated read counts
+- Here we create a composite object containing abundance based on the estimated mapped reads.
+
+```{r}
+taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
+
+metadata <- m3_metadata %>% 
+  select(sample_id, platform) %>% 
+  drop_na(platform)
+
+m3_read_based_otutable <-  m3_read_counts_otutable %>% 
+  pivot_longer(-otu, names_to = "sample_id", values_to = "count") %>% 
+  relocate(sample_id, .before = otu) %>% 
+  group_by(sample_id) %>% 
+  mutate(rel_abund = count/sum(count)) %>% 
+  ungroup() %>% 
+  relocate(count, .before = rel_abund) 
+
+taxonomy <- m3_taxonomy
+
+m3_read_count_composite <- inner_join(metadata, m3_read_based_otutable, by = "sample_id") %>% 
+  inner_join( ., m3_taxonomy, by = "otu")
+
+cat("\nColumn names of the composite file\n")
+colnames(m3_read_count_composite)
+
+cat("\nDoes the relative abundance adds to 1? Must!\n")
+m3_read_count_composite %>% 
+  group_by(sample_id) %>% 
+  summarise(total_re_abund = round(sum(rel_abund)))
+
+m3_read_count_composite_long <- m3_read_count_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "levels", values_to = "taxon") %>% 
+  relocate(rel_abund, .after = taxon)
+
+saveRDS(m3_read_count_composite, "RDataRDS/m3_read_count_composite.rds")
+resave(m3_read_count_composite_long, file = "RDataRDS/composite_long_objects.RData")
+resave(m3_read_count_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
 ```
 
-## Create phyloseq objects
-### From `mothur` output
+## Saved objects in this section
+```{r}
+load("RDataRDS/composite_long_objects.RData", verbose = T)
+```
+
+
+
+# Creating Phyloseq Objects
+## From `mothur` output
 ```{r}
 
 ```
 
 
-### From `qiime2` output
+## From `qiime2` output
 ```{r}
 
 ```
 
 
-### From `metaphlan` output
+## From `metaphlan` output
 ```{r}
 
 ```
