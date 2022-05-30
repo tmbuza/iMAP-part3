@@ -68,9 +68,9 @@ E [label = 'Taxonomy Table']
 F [label = 'Composite Object']
 G [label = 'Data\nTansformation']
 H [label = 'Preliminary\nVisualization']
-I [label = 'DEEPER INSIGHTS', fillcolor = yellow, penwidth = 2.0]
+I [label = 'For Deeper \nInsights', fillcolor = yellow, penwidth = 2.0]
 
-{A}  -> B
+{A}  -> B [label = '  Input Data']
 {B}  -> C
 {B}  -> D
 {B}  -> E
@@ -92,7 +92,7 @@ rsvg::rsvg_png(part3_flow, "img/part3_flow.png")
 ```
 
 
-<a href=""><img src="img/part2_bioinfo.png" alt="Book cover" width="100%" style="padding: 50px 0px 50px 0px; float: right;"/></a>
+<a href=""><img src="images/abund_bar.gif" alt="Book cover" width="100%" style="padding: 50px 0px 50px 0px; float: right;"/></a>
 
 ## Quick Glimpse {-}
 Investigating the role of microbial communities in health and disease requires a thorough knowledge of the entire analytical process. Using wrong approaches can cost a significant amount of dollars and lengthy process to achieve the desired results. This is <b>PART 3</b> of the practical user guides intended to provide analytical support to the microbiome research community. The entire guide is reproducible, allowing users to easily follow along. If interested, user may use this model to publish their findings in a book format.

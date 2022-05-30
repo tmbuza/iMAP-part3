@@ -1,10 +1,18 @@
 # (PART) EXPLORATORY ANALYSIS {-}
 
-# Data Tidying and Transformation
+# Joining Pre-processed Data {#data-joining}
+
+```{block, type="tmbinfo", echo=T}
+## Quick glimpse
+Creating an object that joins the metadata, microbial abundance, and taxonomy data simplifies the downstream analyses. We will create a composite object containing lots of information needed to do any type of analysis we desire when exploring the **16S rRNA gene** or **metagenomics** sequencing data.
+
+Let' get started
+```
+
 ## Prerequisite
-- Preprocessed metadata.
-- Preprocessed microbial abundance table.
-- Preprocessed taxonomy table.
+- Tidy metadata.
+- Tidy microbial abundance table.
+- Tidy taxonomy table.
 
 ## Import libraries and functions
 ```{r warning=FALSE, include=FALSE}
@@ -17,21 +25,100 @@ library(tidyverse)
 load("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData", verbose = T)
 ```
 
-## Create composite R objects
+## Create composite objects
+
 ### From `mothur` output
 ```{r}
+taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
+mo_metadata <- mo_metadata %>% 
+  select(sample_id, isolate) %>% 
+  drop_na(isolate)
+
+mo_otu_counts <- mo_otutable %>% 
+  pivot_longer(-otu, names_to = "sample_id", values_to = "count") %>% 
+  relocate(sample_id, .before = otu)
+
+mo_taxonomy <- mo_taxonomy 
+  
+mo_composite <- inner_join(mo_metadata, mo_otu_counts, by = "sample_id") %>% 
+  inner_join( ., mo_taxonomy, by = "otu") %>% 
+  group_by(sample_id) %>% 
+  mutate(rel_abund = count/sum(count)) %>% 
+  ungroup() %>% 
+  select(-count) 
+
+cat("\nColumn names of the composite file\n")
+colnames(mo_composite)
+
+cat("\nDoes the relative abundance adds to 1? Must!\n")
+mo_composite %>% 
+  group_by(sample_id) %>% 
+  summarise(total_re_abund = sum(rel_abund))
+
+mo_composite_long <- mo_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "levels", values_to = "taxon") %>% 
+  relocate(rel_abund, .after = taxon)
+
+
+saveRDS(mo_composite, "RDataRDS/mo_composite.rds")
+resave(mo_composite, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
 ```
+
 
 
 ### From `qiime2` output
 ```{r}
+taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
+metadata <- q2_metadata %>% 
+  select(sample_id = "sample-id", isolate) %>% 
+  drop_na(isolate)
+
+otu_counts <- q2_otutable %>% 
+  pivot_longer(-feature, names_to = "sample_id", values_to = "count") %>% 
+  relocate(sample_id, .before = feature)
+
+taxonomy <- q2_taxonomy 
+  
+q2_composite <- inner_join(metadata, otu_counts, by = "sample_id") %>% 
+  inner_join( ., taxonomy, by = "feature") %>% 
+  group_by(sample_id) %>% 
+  mutate(rel_abund = count/sum(count)) %>% 
+  ungroup() %>% 
+  select(-count) 
+
+cat("\nColumn names of the composite file\n")
+colnames(mo_composite)
+
+cat("\nDoes the relative abundance adds to 1? Must!\n")
+q2_composite %>% 
+  group_by(sample_id) %>% 
+  summarise(total_re_abund = sum(rel_abund))
+
+q2_composite_long <- q2_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "feature"), names_to = "levels", values_to = "taxon") %>% 
+  relocate(rel_abund, .after = taxon)
+
+saveRDS(q2_composite, "RDataRDS/q2_composite.rds")
+resave(q2_composite, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
 ```
 
 
 ### From `metaphlan` output
+...In Progress...
 ```{r}
+taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
+
+metadata <- m3_metadata %>% 
+  select(sample_id, platform) %>% 
+  drop_na(platform)
+
+otu_counts <- m3_otutable %>% 
+  pivot_longer(-otu, names_to = "sample_id", values_to = "rel_abund") %>% 
+  relocate(sample_id, .before = otu)
+
+taxonomy <- m3_taxonomy
 
 ```
 
