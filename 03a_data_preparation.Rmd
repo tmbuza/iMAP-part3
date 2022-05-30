@@ -1,18 +1,20 @@
 # (PART) EXPLORATORY ANALYSIS {-}
 
-# Joining Pre-processed Data {#data-joining}
+# Data Preparation {#data-preparation}
+
 
 ```{block, type="tmbinfo", echo=T}
-## Quick glimpse
+### Quick glimpse
 Creating an object that joins the metadata, microbial abundance, and taxonomy data simplifies the downstream analyses. We will create a composite object containing lots of information needed to do any type of analysis we desire when exploring the **16S rRNA gene** or **metagenomics** sequencing data.
-
-Let' get started
 ```
 
+Let' get started
+
+
 ## Prerequisite
-- Tidy metadata.
-- Tidy microbial abundance table.
-- Tidy taxonomy table.
+- Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
+- Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
+- Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 
 ## Import libraries and functions
 ```{r warning=FALSE, include=FALSE}

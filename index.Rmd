@@ -68,7 +68,7 @@ E [label = 'Taxonomy Table']
 F [label = 'Composite Object']
 G [label = 'Data\nTansformation']
 H [label = 'Preliminary\nVisualization']
-I [label = 'For Deeper \nInsights', fillcolor = yellow, penwidth = 2.0]
+I [label = 'Deeper \nInsights...', fillcolor = yellow, penwidth = 2.0]
 
 {A}  -> B [label = '  Input Data']
 {B}  -> C
