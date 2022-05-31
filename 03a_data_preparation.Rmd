@@ -195,21 +195,183 @@ load("RDataRDS/composite_long_objects.RData", verbose = T)
 
 
 # Creating Phyloseq Objects
-## From `mothur` output
+## Prerequisite
+- Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
+- Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
+- Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
+
+## Import libraries and functions
+```{r warning=FALSE, include=FALSE}
+source("R/common.R")
+library(tidyverse)
+library(phyloseq)
+library(ape)
+library(metagMisc)
+```
+
+## Load preprocessed data
 ```{r}
+cat("Metadata\n\n")
+load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
+
+cat("\nOtu and taxonomy tables\n\n")
+load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part2/RDataRDS/otutaxonomy_objects.RData", verbose = T)
+
+```
+
+## Phyloseq object using `mothur` output
+```{r}
+ps_mo_metadata <- mo_metadata %>% tibble::column_to_rownames("sample_id") %>% 
+  sample_data(ps_mo_metadata)
+
+ps_mo_otutable <- mo_otutable %>% tibble::column_to_rownames("otu") %>% 
+  otu_table(ps_mo_otutable, taxa_are_rows = TRUE)
+
+ps_mo_taxonomy <- as.matrix(mo_taxonomy %>% tibble::column_to_rownames("otu")) %>% 
+  tax_table(ps_mo_taxonomy)
+
+ps_mo <- merge_phyloseq(ps_mo_metadata, ps_mo_otutable, ps_mo_taxonomy)
+
+ps_mo_taxa_tree = rtree(ntaxa(ps_mo), rooted=TRUE, tip.label=taxa_names(ps_mo))
+
+ps_mo_raw <- phyloseq::merge_phyloseq(ps_mo, ps_mo_taxa_tree)
+ps_mo_raw
+ps_mo_rel <- phyloseq::transform_sample_counts(ps_mo_raw, function(x){x / sum(x)})
+
+save(ps_mo_raw, ps_mo_rel,  file = "RDataRDS/phyloseq_objects.RData")
+```
+
+
+## Phyloseq object using `qiime2` output
+```{r}
+ps_q2_metadata <- q2_metadata %>% 
+  rename(sample_id = "sample-id") %>% 
+  tibble::column_to_rownames("sample_id") %>% 
+  sample_data(ps_q2_metadata)
+
+ps_q2_otutable <- q2_otutable %>% tibble::column_to_rownames("feature") %>% 
+  otu_table(ps_q2_otutable, taxa_are_rows = TRUE)
+
+ps_q2_taxonomy <- as.matrix(q2_taxonomy %>% tibble::column_to_rownames("feature")) %>% 
+  tax_table(ps_q2_taxonomy)
+
+ps_q2 <- merge_phyloseq(ps_q2_metadata, ps_q2_otutable, ps_q2_taxonomy)
+
+ps_q2_taxa_tree = rtree(ntaxa(ps_q2), rooted=TRUE, tip.label=taxa_names(ps_q2))
+
+ps_q2_raw <- phyloseq::merge_phyloseq(ps_q2, ps_q2_taxa_tree)
+ps_q2_raw
+
+ps_q2_rel <- phyloseq::transform_sample_counts(ps_q2_raw, function(x){x / sum(x)})
+
+resave(ps_q2_raw, ps_q2_rel,  file = "RDataRDS/phyloseq_objects.RData")
+```
+
+
+## Phyloseq object using `metaphlan` output
+```{r}
+ps_m3_metadata <- m3_metadata %>% tibble::column_to_rownames("sample_id") %>% 
+  sample_data(ps_m3_metadata)
+
+ps_m3_otutable <- m3_read_counts_otutable %>% tibble::column_to_rownames("otu") %>% 
+  otu_table(ps_m3_otutable, taxa_are_rows = TRUE)
+
+ps_m3_taxonomy <- as.matrix(m3_read_counts_taxonomy %>% tibble::column_to_rownames("otu")) %>% 
+  tax_table(ps_m3_taxonomy)
+
+ps_m3 <- merge_phyloseq(ps_m3_metadata, ps_m3_otutable, ps_m3_taxonomy)
+
+ps_m3_taxa_tree = rtree(ntaxa(ps_m3), rooted=TRUE, tip.label=taxa_names(ps_m3))
+
+ps_m3_raw <- phyloseq::merge_phyloseq(ps_m3, ps_m3_taxa_tree)
+ps_m3_raw
+
+ps_m3_rel <- phyloseq::transform_sample_counts(ps_m3_raw, function(x){x / sum(x)})
+
+resave(ps_m3_raw, ps_m3_rel,  file = "RDataRDS/phyloseq_objects.RData")
+```
+
+
+## Review phyloseq objects
+```{r}
+load("RDataRDS/phyloseq_objects.RData", verbose = T)
+```
+
+### Number of taxa
+```{r}
+ps <- ps_mo_raw
+ntaxa(ps)
+```
+
+### Split Kingdom
+```{r}
+ps_k <- phyloseq_sep_tax(ps, TaxRank = "kingdom", drop_NA = FALSE)
+```
+
+
+### Number of samples
+```{r}
+nsamples(ps)
+```
+
+### Sample names
+```{r}
+sample_names(ps)
+```
+
+### Rank names
+```{r}
+rank_names(ps)
+```
+
+### Sample variables
+```{r}
+sample_variables(ps)
+```
+
+### Abundance table
+```{r}
+otu_table(ps)[1:5, 1:5]
+```
+
+### Taxonomy table
+```{r}
+tax_table(ps)[1:5, 1:5]
+```
+
+Phylogenetic tree
+```{r}
+phy_tree(ps)
+```
+
+### Taxa names
+```{r}
+taxa_names(ps)[1:10]
+```
+
+## Summarize Phyloseq Object
+```{r message=FALSE, warning=FALSE}
+
+microbiome::summarize_phyloseq(ps)
 
 ```
 
 
-## From `qiime2` output
+## Sort Samples
 ```{r}
+sort(phyloseq::sample_sums(ps), decreasing = F)
 
 ```
 
-
-## From `metaphlan` output
+## Drop Samples Below a Threshold
 ```{r}
-
+ps1perc <- phyloseq::subset_samples(ps, phyloseq::sample_sums(ps) > 0)
+ps1perc
 ```
 
+## Drop Taxa Below a Threshold
+```{r}
+pstaxa_pruned <- phyloseq::prune_taxa(phyloseq::taxa_sums(ps) > 1, ps)
+pstaxa_pruned 
+```
 
