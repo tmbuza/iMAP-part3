@@ -3,133 +3,86 @@
 ## Load data
 ```{r}
 source("R/common.R")
-load("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData", verbose = T)
+load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
 
 
-## Abundance distribution across samples
+## Phyloseq stacked barcharts
+- Here we are using `metaphlan` output `ps_m3_rel object` generated from simulated sequencing data.
+- The plots are stacked by animation.
 
-```{r m3_taxon_bars, fig.height=6, fig.width=6,  animation.hook="gifski"}
-library(tidyverse, suppressPackageStartupMessages())
-library(gganimate)
-library(gifski)
+```{r ps_abund_bar, fig.height=10, fig.width=10, animation.hook='gifski'}
+ps_rel <- ps_q2_rel
 
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(!grepl("\\|p__*", taxonomy)) %>%
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col() +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Kingdom") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
+# Kingdom
+phyloseq::plot_bar(ps_rel, fill = "kingdom") +
+  geom_bar(aes(color = kingdom, fill = kingdom), stat = "identity", position = "stack") +
+  labs(x = "", y = "Relative Abundance\n") +
+  facet_wrap(~ ecosystem, scales = "free") +
+  theme(panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  # nolegend +
+  labs(title = "Kingdom abundance") + 
+  centertitle 
 
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(!grepl("\\|c__*", taxonomy),
-                grepl("p__*", taxonomy)) %>%
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col(position = "fill") +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Phylum") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
+# phylum
+phyloseq::plot_bar(ps_rel, fill = "phylum") +
+  geom_bar(aes(color = phylum, fill = phylum), stat = "identity", position = "stack") +
+  labs(x = "", y = "Relative Abundance\n") +
+  facet_wrap(~ ecosystem, scales = "free") +
+  theme(panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  #nolegend +
+  labs(title = "Phylum abundance") + 
+  centertitle
 
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(!grepl("\\|o__*", taxonomy),
-                grepl("c__*", taxonomy)) %>%
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col(position = "fill") +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Class") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
+# class
+phyloseq::plot_bar(ps_rel, fill = "class") +
+  geom_bar(aes(color = class, fill = class), stat = "identity", position = "stack") +
+  labs(x = "", y = "Relative Abundance\n") +
+  facet_wrap(~ ecosystem, scales = "free") +
+  theme(panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  # nolegend +
+  labs(title = "Class abundance") + 
+  centertitle 
 
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(!grepl("\\|f__*", taxonomy),
-                grepl("o__*", taxonomy)) %>%
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col(position = "fill") +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Order") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
+# order
+phyloseq::plot_bar(ps_rel, fill = "order") +
+  geom_bar(aes(color = order, fill = order), stat = "identity", position = "stack") +
+  labs(x = "", y = "Relative Abundance\n") +
+  facet_wrap(~ ecosystem, scales = "free") +
+  theme(panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  # nolegend +
+  labs(title = "Order abundance") + 
+  centertitle
 
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(!grepl("\\|g__*", taxonomy),
-                grepl("f__*", taxonomy)) %>%
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col(position = "fill") +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Family") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
+# family    
+phyloseq::plot_bar(ps_rel, fill = "family") +
+  geom_bar(aes(color = family, fill = family), stat = "identity", position = "stack") +
+  labs(x = "", y = "Relative Abundance\n") +
+  facet_wrap(~ ecosystem, scales = "free") +
+  theme(panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  # nolegend +
+  labs(title = "Family abundance") + 
+  centertitle
 
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(!grepl("\\|s__*", taxonomy),
-                grepl("g__*", taxonomy)) %>%
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col(position = "fill") +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Genus") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
-
-m3_merged_abund_table %>% 
-  select(sample_id, taxonomy, rel_abund) %>% 
-  distinct() %>% 
-  dplyr::filter(grepl("s__*", taxonomy)) %>%
-  mutate(taxonomy = str_replace_all(taxonomy, ".*__", "")) %>% 
-  group_by(sample_id, taxonomy, rel_abund) %>%
-  summarise(count = sum(rel_abund),
-            rel_abund = rel_abund/100, .groups = "drop") %>% 
-  select(-count) %>% 
-  ggplot(aes(x = sample_id, y = rel_abund, fill = taxonomy)) +
-  geom_col(position = "fill") +
-  theme_bw() +
-  labs(x = "", y = "Relative Abundance", title = "", fill = "Species") +
-  noxlabels +
-  scale_y_continuous(expand = c(0, 0))
+# genus   
+phyloseq::plot_bar(ps_rel, fill = "genus") +
+  geom_bar(aes(color = genus, fill = genus), stat = "identity", position = "stack") +
+  labs(x = "", y = "Relative Abundance\n") +
+  facet_wrap(~ ecosystem, scales = "free") +
+  theme(panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  # nolegend +
+  labs(title = "Genus abundance") + 
+  centertitle
 ```
-
-
