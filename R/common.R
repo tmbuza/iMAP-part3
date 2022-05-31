@@ -54,7 +54,46 @@ if(!require("scales")) {install.packages("scales")}
 library(scales)
 
 if(!require("cgwtools")) {install.packages("cgwtools")}
-library()
+library(cgwtools)
+
+if(!require("phyloseq")) {install.packages("phyloseq")}
+library(phyloseq)
+
+if(!require("ape")) {install.packages("ape")}
+library(ape)
+
+if(!require("metagMisc")) {install.packages("metagMisc")}
+library(metagMisc)
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
+
+# if(!require("")) {install.packages("")}
+# library()
 
 # if(!require("")) {install.packages("")}
 # library()
