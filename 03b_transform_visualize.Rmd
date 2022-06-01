@@ -11,8 +11,11 @@ load("RDataRDS/Rjoined_objects.RData", verbose = T)
 ```
 
 ## Stacked barcharts using `ggplot2` package{#ggplot-bars}
+> Note: We will plot the barcharts based on the mean relative abundance.
 
-```{r ggplot_barchart, fig.height=10, fig.width=10, animation.hook='gifski'}
+```{r ggplot_barchart, fig.height=10, fig.width=10, animation.hook='gifski', interval=4, fig.width=4}
+set.seed(110912)
+
 df <- mo_Rjoined_object %>% 
   rename(group = isolate)
 
