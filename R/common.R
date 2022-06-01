@@ -65,8 +65,8 @@ library(ape)
 if(!require("metagMisc")) {install.packages("metagMisc")}
 library(metagMisc)
 
-# if(!require("")) {install.packages("")}
-# library()
+if(!require("gifski")) {install.packages("gifski")}
+library(gifski)
 
 # if(!require("")) {install.packages("")}
 # library()
