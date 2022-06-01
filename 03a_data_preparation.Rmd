@@ -1,11 +1,7 @@
-# (PART) DATA PREPARATION {-}
-
-# Creating Composite R Objects {#data-preparation}
-
+# Creating Composite R Objects {#r-objects}
 
 ```{block, type="tmbinfo", echo=T}
-### Quick glimpse
-Creating an object that joins the metadata, microbial abundance, and taxonomy data simplifies the downstream analyses. We will create a composite object containing lots of information needed to do any type of analysis we desire when exploring the **16S rRNA gene** or **metagenomics** sequencing data.
+> Creating an object that joins the metadata, microbial abundance, and taxonomy data simplifies the downstream analyses. The composite objects are in long-format and enables us to do any type of analysis we desire when exploring the results associated with **16S rRNA gene** or **metagenomics** sequencing data.
 ```
 
 Let' get started
@@ -16,23 +12,19 @@ Let' get started
 - Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 - Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 
-## Import libraries and functions
-```{r warning=FALSE, include=FALSE}
+Load libraries and data
+```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)
-```
 
-## Load preprocessed data
-```{r}
 cat("Metadata\n\n")
 load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
 
 cat("\nOtu and taxonomy tables\n\n")
 load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part2/RDataRDS/otutaxonomy_objects.RData", verbose = T)
-
 ```
 
-## Joining `mothur` output
+## Creating R objects from `mothur` output {#mothur-composite}
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
@@ -61,19 +53,19 @@ mo_composite %>%
   group_by(sample_id) %>% 
   summarise(total_re_abund = sum(rel_abund))
 
-mo_composite_long <- mo_composite %>% 
-  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "levels", values_to = "taxon") %>% 
+mo_Rjoined_object <- mo_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon)
 
 
 saveRDS(mo_composite, "RDataRDS/mo_composite.rds")
-save(mo_composite_long, file = "RDataRDS/composite_long_objects.RData")
-resave(mo_composite, mo_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+save(mo_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
+save(mo_composite, mo_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
 
 
-## Joining `qiime2` output
+## Creating R objects from `qiime2` output {#qiime2-composite}
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
@@ -102,17 +94,17 @@ q2_composite %>%
   group_by(sample_id) %>% 
   summarise(total_re_abund = sum(rel_abund))
 
-q2_composite_long <- q2_composite %>% 
-  pivot_longer(cols = c(all_of(taxlevels), "feature"), names_to = "levels", values_to = "taxon") %>% 
+q2_Rjoined_object <- q2_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "feature"), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon)
 
 saveRDS(q2_composite, "RDataRDS/q2_composite.rds")
-resave(q2_composite_long, file = "RDataRDS/composite_long_objects.RData")
-resave(q2_composite, q2_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+resave(q2_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
+resave(q2_composite, q2_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
 
-## Joining `metaphlan` output
+## Creating R objects from `metaphlan` output  {#metaphlan-composite}
 - Here we create a composite object using default relative abundance output.
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
@@ -138,16 +130,17 @@ m3_rel_composite %>%
   group_by(sample_id) %>% 
   summarise(total_re_abund = round(sum(rel_abund)))
 
-m3_rel_composite_long <- m3_rel_composite %>% 
-  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "levels", values_to = "taxon") %>% 
+m3_rel_Rjoined_object <- m3_rel_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon)
 
 
 saveRDS(m3_rel_composite, "RDataRDS/m3_rel_composite.rds")
-resave(m3_rel_composite_long, file = "RDataRDS/composite_long_objects.RData")
-resave(m3_rel_composite, m3_rel_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+resave(m3_rel_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
+resave(m3_rel_composite, m3_rel_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
-### From `metaphlan` estimated read counts
+
+## Creating R objects from `metaphlan` estimated read counts {#metaphlan-count-composite}
 - Here we create a composite object containing abundance based on the estimated mapped reads.
 
 ```{r}
@@ -178,23 +171,23 @@ m3_read_count_composite %>%
   group_by(sample_id) %>% 
   summarise(total_re_abund = round(sum(rel_abund)))
 
-m3_read_count_composite_long <- m3_read_count_composite %>% 
-  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "levels", values_to = "taxon") %>% 
+m3_read_count_Rjoined_object <- m3_read_count_composite %>% 
+  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon)
 
 saveRDS(m3_read_count_composite, "RDataRDS/m3_read_count_composite.rds")
-resave(m3_read_count_composite_long, file = "RDataRDS/composite_long_objects.RData")
-resave(m3_read_count_composite_long, file = "~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/saved_objects.RData")
+resave(m3_read_count_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
+resave(m3_read_count_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
-## Saved objects in this section
+## Review saved R joined objects
 ```{r}
-load("RDataRDS/composite_long_objects.RData", verbose = T)
+load("RDataRDS/Rjoined_objects.RData", verbose = T)
 ```
 
 
 
-# Creating Phyloseq Objects
+# Creating Phyloseq Objects {#physeq-objects}
 ## Prerequisite
 - Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
 - Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
@@ -219,7 +212,7 @@ load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part2/RDataRDS/otutaxonomy_objects.RData",
 
 ```
 
-## Phyloseq object using `mothur` output
+## Phyloseq object using `mothur` output {#mothur-physeq}
 ```{r}
 ps_mo_metadata <- mo_metadata %>% tibble::column_to_rownames("sample_id") %>% 
   sample_data(ps_mo_metadata)
@@ -241,8 +234,12 @@ ps_mo_rel <- phyloseq::transform_sample_counts(ps_mo_raw, function(x){x / sum(x)
 save(ps_mo_raw, ps_mo_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
+Summarize `P`mothur` phyloseq object
+```{r message=FALSE, warning=FALSE}
+microbiome::summarize_phyloseq(ps_mo_raw)
+```
 
-## Phyloseq object using `qiime2` output
+## Phyloseq object using `qiime2` output {#qiime2-physeq}
 ```{r}
 ps_q2_metadata <- q2_metadata %>% 
   rename(sample_id = "sample-id") %>% 
@@ -267,8 +264,12 @@ ps_q2_rel <- phyloseq::transform_sample_counts(ps_q2_raw, function(x){x / sum(x)
 resave(ps_q2_raw, ps_q2_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
+Summarize `P`qiime2` phyloseq object
+```{r message=FALSE, warning=FALSE}
+microbiome::summarize_phyloseq(ps_q2_raw)
+```
 
-## Phyloseq object using `metaphlan` output
+## Phyloseq object using `metaphlan` output {#metaphlan-physeq}
 ```{r}
 ps_m3_metadata <- m3_metadata %>% tibble::column_to_rownames("sample_id") %>% 
   sample_data(ps_m3_metadata)
@@ -291,87 +292,18 @@ ps_m3_rel <- phyloseq::transform_sample_counts(ps_m3_raw, function(x){x / sum(x)
 resave(ps_m3_raw, ps_m3_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
+Summarize `P`metaphlan` phyloseq object
+```{r message=FALSE, warning=FALSE}
+microbiome::summarize_phyloseq(ps_m3_raw)
+```
 
-## Review phyloseq objects
+
+## Review saved phyloseq objects
 ```{r}
 load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
 
-### Number of taxa
-```{r}
-ps <- ps_mo_raw
-ntaxa(ps)
-```
-
-### Split Kingdom
-```{r}
-ps_k <- phyloseq_sep_tax(ps, TaxRank = "kingdom", drop_NA = FALSE)
-```
 
 
-### Number of samples
-```{r}
-nsamples(ps)
-```
 
-### Sample names
-```{r}
-sample_names(ps)
-```
-
-### Rank names
-```{r}
-rank_names(ps)
-```
-
-### Sample variables
-```{r}
-sample_variables(ps)
-```
-
-### Abundance table
-```{r}
-otu_table(ps)[1:5, 1:5]
-```
-
-### Taxonomy table
-```{r}
-tax_table(ps)[1:5, 1:5]
-```
-
-Phylogenetic tree
-```{r}
-phy_tree(ps)
-```
-
-### Taxa names
-```{r}
-taxa_names(ps)[1:10]
-```
-
-## Summarize Phyloseq Object
-```{r message=FALSE, warning=FALSE}
-
-microbiome::summarize_phyloseq(ps)
-
-```
-
-
-## Sort Samples
-```{r}
-sort(phyloseq::sample_sums(ps), decreasing = F)
-
-```
-
-## Drop Samples Below a Threshold
-```{r}
-ps1perc <- phyloseq::subset_samples(ps, phyloseq::sample_sums(ps) > 0)
-ps1perc
-```
-
-## Drop Taxa Below a Threshold
-```{r}
-pstaxa_pruned <- phyloseq::prune_taxa(phyloseq::taxa_sums(ps) > 1, ps)
-pstaxa_pruned 
-```
 
