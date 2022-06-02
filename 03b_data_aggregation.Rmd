@@ -8,24 +8,24 @@
 Let' get started
 
 
-## Prerequisite
+### Prerequisite
 - Tidy metadata.
 - Tidy microbial abundance table.
 - Tidy taxonomy table.
 
-## Load libraries and data
+### Load libraries and data
 ```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)
 
 cat("Metadata\n\n")
-load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
+load("../iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
 
 cat("\nOtu and taxonomy tables\n\n")
-load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part2/RDataRDS/otutaxonomy_objects.RData", verbose = T)
+load("RDataRDS/otutaxonomy_objects.RData", verbose = T)
 ```
 
-## Creating R objects from `mothur` output {#mothur-composite}
+### Creating R objects from `mothur` output {#mothur-composite}
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
@@ -66,7 +66,7 @@ save(mo_composite, mo_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 
 
 
-## Creating R objects from `qiime2` output {#qiime2-composite}
+### Creating R objects from `qiime2` output {#qiime2-composite}
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
 
@@ -88,7 +88,7 @@ q2_composite <- inner_join(metadata, otu_counts, by = "sample_id") %>%
   relocate(count, .before = rel_abund)
 
 cat("\nColumn names of the composite file\n")
-colnames(mo_composite)
+colnames(q2_composite)
 
 cat("\nDoes the relative abundance adds to 1? Must!\n")
 q2_composite %>% 
@@ -97,7 +97,7 @@ q2_composite %>%
 
 q2_Rjoined_object <- q2_composite %>% 
   pivot_longer(cols = c(all_of(taxlevels), "feature"), names_to = "level", values_to = "taxon") %>% 
-  relocate(rel_abund, .after = taxon)
+  relocate(c(count, rel_abund), .after = taxon)
 
 saveRDS(q2_composite, "RDataRDS/q2_composite.rds")
 resave(q2_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
@@ -105,7 +105,7 @@ resave(q2_composite, q2_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
 
-## Creating R objects from `metaphlan` output  {#metaphlan-composite}
+### Creating R objects from `metaphlan` output  {#metaphlan-composite}
 - Here we create a composite object using default relative abundance output.
 ```{r}
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus" )
@@ -141,7 +141,7 @@ resave(m3_rel_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
 resave(m3_rel_composite, m3_rel_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
-## Creating R objects from `metaphlan` estimated read counts {#metaphlan-count-composite}
+### Creating R objects from `metaphlan` estimated read counts {#metaphlan-count-composite}
 - Here we create a composite object containing abundance based on the estimated mapped reads.
 
 ```{r}
@@ -181,39 +181,32 @@ resave(m3_read_count_Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
 resave(m3_read_count_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
-## Review saved R joined objects
+### Review saved R joined objects
 ```{r}
 load("RDataRDS/Rjoined_objects.RData", verbose = T)
 ```
 
 
 
-# Creating Phyloseq Objects {#physeq-objects}
-## Prerequisite
+## Creating Phyloseq Objects {#physeq-objects}
+### Prerequisite
 - Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
 - Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 - Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 
-## Import libraries and functions
-```{r warning=FALSE, include=FALSE}
+### Load libraries and data
+```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)
-library(phyloseq)
-library(ape)
-library(metagMisc)
-```
 
-## Load preprocessed data
-```{r}
 cat("Metadata\n\n")
-load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
+load("../iMAP_part1/RDataRDS/metadata_objects.RData", verbose = T)
 
 cat("\nOtu and taxonomy tables\n\n")
-load("~/Dropbox/CDILLC/GIT_REPOS/iMAP_part2/RDataRDS/otutaxonomy_objects.RData", verbose = T)
-
+load("RDataRDS/otutaxonomy_objects.RData", verbose = T)
 ```
 
-## Phyloseq object using `mothur` output {#mothur-physeq}
+### Phyloseq object using `mothur` output {#mothur-physeq}
 ```{r}
 ps_mo_metadata <- mo_metadata %>% tibble::column_to_rownames("sample_id") %>% 
   sample_data(ps_mo_metadata)
@@ -235,12 +228,12 @@ ps_mo_rel <- phyloseq::transform_sample_counts(ps_mo_raw, function(x){x / sum(x)
 save(ps_mo_raw, ps_mo_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
-Summarize `P`mothur` phyloseq object
+Summarizing `mothur` phyloseq object
 ```{r message=FALSE, warning=FALSE}
 microbiome::summarize_phyloseq(ps_mo_raw)
 ```
 
-## Phyloseq object using `qiime2` output {#qiime2-physeq}
+### Phyloseq object using `qiime2` output {#qiime2-physeq}
 ```{r}
 ps_q2_metadata <- q2_metadata %>% 
   rename(sample_id = "sample-id") %>% 
@@ -265,12 +258,12 @@ ps_q2_rel <- phyloseq::transform_sample_counts(ps_q2_raw, function(x){x / sum(x)
 resave(ps_q2_raw, ps_q2_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
-Summarize `P`qiime2` phyloseq object
+Summarizing `qiime2` phyloseq object
 ```{r message=FALSE, warning=FALSE}
 microbiome::summarize_phyloseq(ps_q2_raw)
 ```
 
-## Phyloseq object using `metaphlan` output {#metaphlan-physeq}
+### Phyloseq object using `metaphlan` output {#metaphlan-physeq}
 ```{r}
 ps_m3_metadata <- m3_metadata %>% tibble::column_to_rownames("sample_id") %>% 
   sample_data(ps_m3_metadata)
@@ -293,18 +286,73 @@ ps_m3_rel <- phyloseq::transform_sample_counts(ps_m3_raw, function(x){x / sum(x)
 resave(ps_m3_raw, ps_m3_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
-Summarize `P`metaphlan` phyloseq object
-```{r message=FALSE, warning=FALSE}
-microbiome::summarize_phyloseq(ps_m3_raw)
-```
 
-
-## Review saved phyloseq objects
+### Review saved phyloseq objects
 ```{r}
 load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
 
+Summarizing `metaphlan` phyloseq object
+```{r message=FALSE, warning=FALSE}
+microbiome::summarize_phyloseq(ps_m3_raw)
+```
 
+## Preparing visualization input data
+```{r taxon_rel_abund_data, animation.hook='gifski', interval=4, fig.width=4}
+set.seed(110912)
 
+library(ggtext) # for markdown and rmarkdown formatting
 
+mo_taxon_rel_abund <- mo_Rjoined_object %>% 
+  rename(group = isolate) %>% 
+  filter(level == "phylum") %>% 
+  group_by(sample_id, taxon, group) %>% 
+  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
+  group_by(group, taxon) %>% 
+  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
+  mutate(taxon = str_replace(taxon,
+                             "(.*)_unclassified", "Unclassified *\\1*"),
+         taxon = str_replace(taxon,
+                             "^(\\S*)$", "*\\1*"))
+save(mo_taxon_rel_abund, file = "RDataRDS/taxon_rel_abund.RData")
+
+q2_taxon_rel_abund <- q2_Rjoined_object %>% 
+  rename(group = isolate) %>% 
+  filter(level == "phylum") %>% 
+  group_by(sample_id, taxon, group) %>% 
+  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
+  group_by(group, taxon) %>% 
+  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
+  mutate(taxon = str_replace(taxon,
+                             "(.*)_unclassified", "Unclassified *\\1*"),
+         taxon = str_replace(taxon,
+                             "^(\\S*)$", "*\\1*"))
+resave(q2_taxon_rel_abund, file = "RDataRDS/taxon_rel_abund.RData")
+
+m3_taxon_rel_abund1 <- m3_rel_Rjoined_object %>% 
+  rename(group = platform) %>% 
+  filter(level == "phylum") %>% 
+  group_by(sample_id, taxon, group) %>% 
+  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
+  group_by(group, taxon) %>% 
+  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
+  mutate(taxon = str_replace(taxon,
+                             "(.*)_unclassified", "Unclassified *\\1*"),
+         taxon = str_replace(taxon,
+                             "^(\\S*)$", "*\\1*"))
+resave(m3_taxon_rel_abund1, file = "RDataRDS/taxon_rel_abund.RData")
+
+m3_taxon_rel_abund2 <- m3_read_count_Rjoined_object %>% 
+  rename(group = platform) %>% 
+  filter(level == "phylum") %>% 
+  group_by(sample_id, taxon, group) %>% 
+  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
+  group_by(group, taxon) %>% 
+  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
+  mutate(taxon = str_replace(taxon,
+                             "(.*)_unclassified", "Unclassified *\\1*"),
+         taxon = str_replace(taxon,
+                             "^(\\S*)$", "*\\1*"))
+resave(m3_taxon_rel_abund2, file = "RDataRDS/taxon_rel_abund.RData")
+```
 

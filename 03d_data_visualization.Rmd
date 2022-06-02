@@ -1,46 +1,22 @@
+# (PART) EXPLORATORY ANALYSIS {-}
+
 # Data Visualization {#visualize-data}
 
 ## Load libraries and data
 ```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)
+library(ggtext)
 
-load("RDataRDS/Rjoined_objects.RData", verbose = T)
+load("RDataRDS/taxon_rel_abund.RData", verbose = T)
 ```
 
+
 ## Stacked barcharts
-> Note: We will plot the barcharts based on the mean relative abundance.
-
-```{r ggplot_barchart, fig.height=10, fig.width=10, animation.hook='gifski', interval=4, fig.width=4}
-set.seed(110912)
-
-df <- mo_Rjoined_object %>% 
-  rename(group = isolate)
-
-library(ggtext) # for markdown and rmarkdown formatting
-
-taxon_rel_abund <- df %>% 
-  filter(level == "phylum") %>% 
-  group_by(sample_id, taxon, group) %>% 
-  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
-  group_by(group, taxon) %>% 
-  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
-  mutate(taxon = str_replace(taxon,
-                             "(.*)_unclassified", "Unclassified *\\1*"),
-         taxon = str_replace(taxon,
-                             "^(\\S*)$", "*\\1*"))
-
-taxon_rel_abund %>%
+```{r taxon_bar, animation.hook='gifski', interval=4, fig.width=4}
+mo_taxon_rel_abund %>%
   ggplot(aes(x = group, y = mean_rel_abund, fill = taxon)) +
   geom_col() +
-  scale_x_discrete(breaks = c("Buffalo",
-                              "Warthog",
-                              "Wildebeest",
-                              "Zebra"),
-                   labels = c("A",
-                              "B",
-                              "C",
-                              "D")) +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
        title = "Barchart before pooling taxa",
@@ -55,29 +31,20 @@ taxon_rel_abund %>%
 
 ggsave("figures/stacked_bar1.tiff", width = 5, height = 4)
 
-
 ### Pooling taxon by relative abundance {#pooled-barchart}
 
-taxon_pool <- taxon_rel_abund %>%
+taxon_pool <- mo_taxon_rel_abund %>%
   group_by(taxon) %>%
   summarise(pool = max(mean_rel_abund) < 3,
             mean = mean(mean_rel_abund),
             .groups = "drop")
 
-inner_join(taxon_rel_abund, taxon_pool, by = "taxon" ) %>% 
+inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>% 
   mutate(taxon = if_else(pool, "Other", taxon)) %>% 
   group_by(group, taxon) %>% 
   summarise(mean_rel_abund = sum(mean_rel_abund), .groups = "drop") %>% 
   ggplot(aes(x = group, y = mean_rel_abund, fill = taxon)) +
   geom_col() +
-  scale_x_discrete(breaks = c("Buffalo",
-                              "Warthog",
-                              "Wildebeest",
-                              "Zebra"),
-                   labels = c("A",
-                              "B",
-                              "C",
-                              "D")) +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
        title = "Barchart with pooled taxa",       
@@ -97,7 +64,7 @@ ggsave("figures/stacked_bar2.tiff", width = 5, height = 4)
 
 library(forcats)
 
-inner_join(taxon_rel_abund, taxon_pool, by = "taxon" ) %>% 
+inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>% 
   mutate(taxon = if_else(pool, "Other", taxon)) %>% 
   group_by(group, taxon) %>% 
   summarise(mean_rel_abund = sum(mean_rel_abund), 
@@ -110,14 +77,6 @@ inner_join(taxon_rel_abund, taxon_pool, by = "taxon" ) %>%
   # levels() %>% 
   ggplot(aes(x = group, y = mean_rel_abund, fill = taxon)) +
   geom_col() +
-  scale_x_discrete(breaks = c("Buffalo",
-                              "Warthog",
-                              "Wildebeest",
-                              "Zebra"),
-                   labels = c("A",
-                              "B",
-                              "C",
-                              "D")) +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
        title = "Barchart reordered using `forcats` package",
@@ -138,7 +97,7 @@ ggsave("figures/stacked_bar3.tiff", width = 5, height = 4)
 library(forcats)
 library(RColorBrewer)
 
-inner_join(taxon_rel_abund, taxon_pool, by = "taxon" ) %>% 
+inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>% 
   mutate(taxon = if_else(pool, "Other", taxon)) %>% 
   group_by(group, taxon) %>% 
   summarise(mean_rel_abund = sum(mean_rel_abund), 
@@ -153,14 +112,6 @@ inner_join(taxon_rel_abund, taxon_pool, by = "taxon" ) %>%
                     breaks = c("*Firmicutes*", "*Proteobacteria*", "*Bacteroidota*", "Unclassified *Bacteria*", "Other"),
                     # values = c(brewer.pal(n = 4, "Dark2"), "gray")) +
                     values = c(brewer.pal(n = 4, "Dark2"), "gray")) +
-  scale_x_discrete(breaks = c("Buffalo",
-                              "Warthog",
-                              "Wildebeest",
-                              "Zebra"),
-                   labels = c("A",
-                              "B",
-                              "C",
-                              "D")) +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
        title = "Barcharts reordered manually",

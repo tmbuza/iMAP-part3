@@ -15,12 +15,6 @@ set.seed(110912)
 source("R/common.R")
 library(tidyverse, suppressPackageStartupMessages())
 
-cat("\nOTU tables and taxonomy\n\n")
-load("RDataRDS/otutaxonomy_objects.RData", verbose = T)
-
-cat("R joined objects\n\n")
-load("RDataRDS/Rjoined_objects.RData", verbose = T)
-
 cat("\nPhyloseq objects\n\n")
 load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
