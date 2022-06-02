@@ -1,4 +1,5 @@
-# Creating Composite R Objects {#r-objects}
+# Data Agrregation
+## Creating aggregated R Objects {#r-objects}
 
 ```{block, type="tmbinfo", echo=T}
 > Creating an object that joins the metadata, microbial abundance, and taxonomy data simplifies the downstream analyses. The composite objects are in long-format and enables us to do any type of analysis we desire when exploring the results associated with **16S rRNA gene** or **metagenomics** sequencing data.
@@ -8,11 +9,11 @@ Let' get started
 
 
 ## Prerequisite
-- Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
-- Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
-- Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
+- Tidy metadata.
+- Tidy microbial abundance table.
+- Tidy taxonomy table.
 
-Load libraries and data
+## Load libraries and data
 ```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)

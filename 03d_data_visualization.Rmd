@@ -1,6 +1,4 @@
-# (PART) EXPLORATORY ANALYSIS {-}
-
-# Data Transformation and Visualization {#transform-and-visualize}
+# Data Visualization {#visualize-data}
 
 ## Load libraries and data
 ```{r message=FALSE, warning=FALSE}
@@ -10,7 +8,7 @@ library(tidyverse)
 load("RDataRDS/Rjoined_objects.RData", verbose = T)
 ```
 
-## Stacked barcharts using `ggplot2` package{#ggplot-bars}
+## Stacked barcharts
 > Note: We will plot the barcharts based on the mean relative abundance.
 
 ```{r ggplot_barchart, fig.height=10, fig.width=10, animation.hook='gifski', interval=4, fig.width=4}
