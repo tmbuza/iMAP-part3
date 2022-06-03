@@ -12,8 +12,11 @@ load("RDataRDS/taxon_rel_abund.RData", verbose = T)
 ```
 
 
-## Stacked barcharts
-```{r taxon_bar, animation.hook='gifski', interval=4, fig.width=4}
+## Stacked barcharts examples
+```{r taxon_bar, fig.height=4, fig.width=6, animation.hook='gifski', interval=4}
+library(tidyverse)
+library(ggtext)
+
 mo_taxon_rel_abund %>%
   ggplot(aes(x = group, y = mean_rel_abund, fill = taxon)) +
   geom_col() +
@@ -31,7 +34,7 @@ mo_taxon_rel_abund %>%
 
 ggsave("figures/stacked_bar1.tiff", width = 5, height = 4)
 
-### Pooling taxon by relative abundance {#pooled-barchart}
+### Pooled taxon
 
 taxon_pool <- mo_taxon_rel_abund %>%
   group_by(taxon) %>%
@@ -47,7 +50,7 @@ inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>%
   geom_col() +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
-       title = "Barchart with pooled taxa",       
+       title = "With pooled taxa",       
        fill = "Phylum") +
   theme_classic() +
   theme(axis.text.x = element_markdown(),
@@ -60,7 +63,7 @@ inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>%
 ggsave("figures/stacked_bar2.tiff", width = 5, height = 4)
 
 
-### Reordering using `forcat` package {#reordered-barchart}
+### Reordered barchart
 
 library(forcats)
 
@@ -73,13 +76,11 @@ inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>%
   mutate(taxon = factor(taxon),
          taxon = fct_reorder(taxon, mean, .desc = T),
          taxon = fct_shift(taxon, n = 1)) %>%
-  # pull(taxon) %>% 
-  # levels() %>% 
   ggplot(aes(x = group, y = mean_rel_abund, fill = taxon)) +
   geom_col() +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
-       title = "Barchart reordered using `forcats` package",
+       title = "Reordered barchart",
        fill = "Phylum") +
   theme_classic() +
   theme(axis.text.x = element_markdown(),
@@ -110,18 +111,20 @@ inner_join(mo_taxon_rel_abund, taxon_pool, by = "taxon" ) %>%
   geom_col() +
   scale_fill_manual(name = NULL,
                     breaks = c("*Firmicutes*", "*Proteobacteria*", "*Bacteroidota*", "Unclassified *Bacteria*", "Other"),
-                    # values = c(brewer.pal(n = 4, "Dark2"), "gray")) +
                     values = c(brewer.pal(n = 4, "Dark2"), "gray")) +
   labs(x = NULL,
        y = "Mean Relative Abundance (%)",
-       title = "Barcharts reordered manually",
+       title = "Reordered manually",
        fill = "Phylum") +
   theme_classic() +
   theme(axis.text.x = element_markdown(),
         legend.text = element_markdown(),
-        legend.key.size = unit(8, "pt")) +
-  guides(fill=guide_legend(ncol=1)) +
-  scale_y_continuous(expand = c(0, 0)) + 
+        legend.key.size = unit(8, "pt"),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks.x = element_blank()) +
+  guides(fill = guide_legend(ncol=1)) +
+  scale_y_continuous(expand = c(0, 0)) +
   centertitle
 
 ggsave("figures/stacked_bar4.tiff", width = 5, height = 4)
@@ -132,7 +135,7 @@ ggsave("figures/stacked_bar4.tiff", width = 5, height = 4)
 
 ## Stacked barcharts using phyloseq package {#phyloseq-bars}
 
-```{r phyloseq_barchart, fig.height=10, fig.width=10, animation.hook='gifski'}
+```{r ps_taxon_bar, fig.height=4, fig.width=6, animation.hook='gifski', interval=4}
 library(phyloseq)
 
 ps_rel <- ps_m3_rel
@@ -145,7 +148,6 @@ phyloseq::plot_bar(ps_rel, fill = "kingdom") +
   theme(panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +
-  # nolegend +
   labs(title = "Kingdom abundance") + 
   centertitle +
   nolegend
@@ -158,7 +160,6 @@ phyloseq::plot_bar(ps_rel, fill = "phylum") +
   theme(panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) + 
-  #nolegend +
   labs(title = "Phylum abundance") + 
   centertitle +
   nolegend
@@ -171,7 +172,6 @@ phyloseq::plot_bar(ps_rel, fill = "class") +
   theme(panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) + 
-  # nolegend +
   labs(title = "Class abundance") + 
   centertitle +
   nolegend
@@ -184,7 +184,6 @@ phyloseq::plot_bar(ps_rel, fill = "order") +
   theme(panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) + 
-  # nolegend +
   labs(title = "Order abundance") + 
   centertitle +
   nolegend
@@ -197,7 +196,6 @@ phyloseq::plot_bar(ps_rel, fill = "family") +
   theme(panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) + 
-  # nolegend +
   labs(title = "Family abundance") + 
   centertitle +
   nolegend
@@ -210,7 +208,6 @@ phyloseq::plot_bar(ps_rel, fill = "genus") +
   theme(panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) + 
-  # nolegend +
   labs(title = "Genus abundance") + 
   centertitle +
   nolegend
