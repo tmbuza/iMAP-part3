@@ -1,5 +1,4 @@
-# Data Agrregation
-## Creating aggregated R Objects {#r-objects}
+# Creating joined R Objects {#r-objects}
 
 ```{block, type="tmbinfo", echo=T}
 > Creating an object that joins the metadata, microbial abundance, and taxonomy data simplifies the downstream analyses. The composite objects are in long-format and enables us to do any type of analysis we desire when exploring the results associated with **16S rRNA gene** or **metagenomics** sequencing data.
@@ -188,13 +187,14 @@ load("RDataRDS/Rjoined_objects.RData", verbose = T)
 
 
 
-## Creating Phyloseq Objects {#physeq-objects}
-### Prerequisite
+# Creating Pyloseq Objects {#data-objects}
+
+## Prerequisite
 - Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
 - Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 - Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 
-### Load libraries and data
+## Load libraries and data
 ```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)
@@ -206,7 +206,8 @@ cat("\nOtu and taxonomy tables\n\n")
 load("RDataRDS/otutaxonomy_objects.RData", verbose = T)
 ```
 
-### Phyloseq object using `mothur` output {#mothur-physeq}
+## Object by data source
+### Using `mothur` output {#mothur-physeq}
 ```{r}
 ps_mo_metadata <- mo_metadata %>% tibble::column_to_rownames("sample_id") %>% 
   sample_data(ps_mo_metadata)
@@ -233,7 +234,7 @@ Summarizing `mothur` phyloseq object
 microbiome::summarize_phyloseq(ps_mo_raw)
 ```
 
-### Phyloseq object using `qiime2` output {#qiime2-physeq}
+### Using `qiime2` output {#qiime2-physeq}
 ```{r}
 ps_q2_metadata <- q2_metadata %>% 
   rename(sample_id = "sample-id") %>% 
@@ -263,7 +264,7 @@ Summarizing `qiime2` phyloseq object
 microbiome::summarize_phyloseq(ps_q2_raw)
 ```
 
-### Phyloseq object using `metaphlan` output {#metaphlan-physeq}
+### Using `metaphlan` output {#metaphlan-physeq}
 ```{r}
 ps_m3_metadata <- m3_metadata %>% tibble::column_to_rownames("sample_id") %>% 
   sample_data(ps_m3_metadata)
@@ -287,72 +288,7 @@ resave(ps_m3_raw, ps_m3_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
 
-### Review saved phyloseq objects
+## Review saved phyloseq objects
 ```{r}
 load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
-
-Summarizing `metaphlan` phyloseq object
-```{r message=FALSE, warning=FALSE}
-microbiome::summarize_phyloseq(ps_m3_raw)
-```
-
-## Preparing visualization input data
-```{r taxon_rel_abund_data, animation.hook='gifski', interval=4, fig.width=4}
-set.seed(110912)
-
-library(ggtext) # for markdown and rmarkdown formatting
-
-mo_taxon_rel_abund <- mo_Rjoined_object %>% 
-  rename(group = isolate) %>% 
-  filter(level == "phylum") %>% 
-  group_by(sample_id, taxon, group) %>% 
-  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
-  group_by(group, taxon) %>% 
-  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
-  mutate(taxon = str_replace(taxon,
-                             "(.*)_unclassified", "Unclassified *\\1*"),
-         taxon = str_replace(taxon,
-                             "^(\\S*)$", "*\\1*"))
-save(mo_taxon_rel_abund, file = "RDataRDS/taxon_rel_abund.RData")
-
-q2_taxon_rel_abund <- q2_Rjoined_object %>% 
-  rename(group = isolate) %>% 
-  filter(level == "phylum") %>% 
-  group_by(sample_id, taxon, group) %>% 
-  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
-  group_by(group, taxon) %>% 
-  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
-  mutate(taxon = str_replace(taxon,
-                             "(.*)_unclassified", "Unclassified *\\1*"),
-         taxon = str_replace(taxon,
-                             "^(\\S*)$", "*\\1*"))
-resave(q2_taxon_rel_abund, file = "RDataRDS/taxon_rel_abund.RData")
-
-m3_taxon_rel_abund1 <- m3_rel_Rjoined_object %>% 
-  rename(group = platform) %>% 
-  filter(level == "phylum") %>% 
-  group_by(sample_id, taxon, group) %>% 
-  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
-  group_by(group, taxon) %>% 
-  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
-  mutate(taxon = str_replace(taxon,
-                             "(.*)_unclassified", "Unclassified *\\1*"),
-         taxon = str_replace(taxon,
-                             "^(\\S*)$", "*\\1*"))
-resave(m3_taxon_rel_abund1, file = "RDataRDS/taxon_rel_abund.RData")
-
-m3_taxon_rel_abund2 <- m3_read_count_Rjoined_object %>% 
-  rename(group = platform) %>% 
-  filter(level == "phylum") %>% 
-  group_by(sample_id, taxon, group) %>% 
-  summarise(rel_abund = sum(rel_abund), .groups = "drop") %>% 
-  group_by(group, taxon) %>% 
-  summarise(mean_rel_abund = 100*mean(rel_abund), .groups = "drop") %>% 
-  mutate(taxon = str_replace(taxon,
-                             "(.*)_unclassified", "Unclassified *\\1*"),
-         taxon = str_replace(taxon,
-                             "^(\\S*)$", "*\\1*"))
-resave(m3_taxon_rel_abund2, file = "RDataRDS/taxon_rel_abund.RData")
-```
-
