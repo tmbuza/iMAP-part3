@@ -1,4 +1,4 @@
-# (PART) DATA PROCESSING {-}
+# (PART) DATA PREPROCESSING {-}
 
 # Data Tidying {#data-tidying}
 

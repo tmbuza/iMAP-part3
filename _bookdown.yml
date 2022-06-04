@@ -8,9 +8,9 @@ output_dir:
 rmd_files: [
 "index.Rmd",
 "03a_data_tidyng.Rmd",
-"03b_data_aggregation.Rmd",
-"03c_data_exploration.Rmd",
-"03d_data_transformation.Rmd",
+"03b_data_joining.Rmd",
+"03c_data_transformation.Rmd",
+"03d_data_reduction.Rmd",
 "99_appendix.Rmd",
 "999-references.Rmd"
 ]

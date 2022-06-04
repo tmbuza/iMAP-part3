@@ -1,4 +1,4 @@
-# Data Tranformation {#transform-data}
+# Data Tranformation {#data-transformation}
 
 ## Quick glimpse
 Data transformation is intended to converting the values into ready-to-use matrices Here we will explore different way that are used to transform raw or relative abundances.

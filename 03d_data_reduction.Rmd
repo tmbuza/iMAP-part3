@@ -1,0 +1,61 @@
+# Dimensionality Reduction {#data-reduction}
+
+## Quick glimpse
+Dimensionality reduction is intended to reduce the the dimension of the variables. Common methods used in microbiome data include:
+
+- Linear methods
+- Non-linear methods
+
+## Prerequisite
+- Saved R objects
+- Saved phyloseq objects
+
+> Either of the R or phyloseq objects can be used as input data.
+
+## Import libraries and saved objects
+```{r}
+set.seed(110912)
+source("R/common.R")
+library(tidyverse, suppressPackageStartupMessages())
+
+cat("\nPhyloseq objects\n\n")
+load("RDataRDS/phyloseq_objects.RData", verbose = T)
+```
+```{r}
+library(phyloseq)
+library(microbiome)
+
+ps_raw <- ps_mo_raw
+ps_rel <- ps_mo_rel
+```
+
+```{block, type="tmbinfo", echo=T}
+## Linear Dimensionality Reduction Methods
+The most common and well known dimensionality reduction methods are the ones that apply linear transformations, like
+
+### PCA (Principal Component Analysis)
+Popularly used for dimensionality reduction in continuous data, PCA rotates and projects data along the direction of increasing variance. The features with the maximum variance are the principal components.
+
+### Factor Analysis
+A technique that is used to reduce a large number of variables into fewer numbers of factors. The values of observed data are expressed as functions of a number of possible causes in order to find which are the most important. The observations are assumed to be caused by a linear transformation of lower dimensional latent factors and added Gaussian noise.
+
+### LDA (Linear Discriminant Analysis)
+Projects data in a way that the class separability is maximised. Examples from same class are put closely together by the projection. Examples from different classes are placed far apart by the projection
+
+Source: https://towardsdatascience.com/dimensionality-reduction-for-machine-learning-80a46c2ebb7e
+```
+
+
+## Reduced Objects
+```{r}
+save(
+
+  file = "RDataRDS/reduced_data_.RData")
+```
+
+## Current saved objects
+```{r include=T}
+resave(
+
+  file = "RDataRDS/saved_objects.RData")
+```
