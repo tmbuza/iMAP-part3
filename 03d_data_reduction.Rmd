@@ -46,16 +46,3 @@ Source: https://towardsdatascience.com/dimensionality-reduction-for-machine-lear
 ```
 
 
-## Reduced Objects
-```{r}
-save(
-
-  file = "RDataRDS/reduced_data_.RData")
-```
-
-## Current saved objects
-```{r include=T}
-resave(
-
-  file = "RDataRDS/saved_objects.RData")
-```

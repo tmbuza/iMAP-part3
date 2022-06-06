@@ -15,7 +15,7 @@ source("R/common.R")
 library(tidyverse, suppressPackageStartupMessages())
 
 cat("Final bioinformatics objects\n\n")
-load("../iMAP_part2/RDataRDS/final-bioinfo_objects.RData", verbose = T)
+load("../iMAP-part2/RDataRDS/final-bioinfo_objects.RData", verbose = T)
 ```
 
 
