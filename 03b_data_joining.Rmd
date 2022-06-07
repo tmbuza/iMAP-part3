@@ -18,6 +18,7 @@ Let' get started
 ```{r message=FALSE, warning=FALSE}
 source("R/common.R")
 library(tidyverse)
+library(glue)
 
 cat("Metadata\n\n")
 load("../iMAP-part1/RDataRDS/metadata_objects.RData", verbose = T)
@@ -38,10 +39,22 @@ mo_otu_counts <- mo_otutable %>%
   pivot_longer(-otu, names_to = "sample_id", values_to = "count") %>% 
   relocate(sample_id, .before = otu)
 
-mo_taxonomy <- mo_taxonomy 
+mo_glued_taxonomy <- mo_taxonomy %>% 
+  mutate(pretty_otu = str_replace(string = otu,
+                             pattern = "otu0*",
+                             replacement = "OTU "),
+        genus = str_replace(string = genus,
+                            pattern = "(.*)",
+                            replacement = "*\\1*"),
+        genus = str_replace(string = genus,
+                            pattern = "(.*)_unclassified*",
+                            replacement = "Unclassified<br>*\\1"),
+        genus_otu = glue("{genus}<br>({pretty_otu})"))
+
+inner_join( mo_glued_taxonomy, mo_taxonomy, by = "otu")
   
 mo_composite <- inner_join(mo_metadata, mo_otu_counts, by = "sample_id") %>% 
-  inner_join( ., mo_taxonomy, by = "otu") %>% 
+  inner_join( ., mo_glued_taxonomy, by = "otu") %>% 
   group_by(sample_id) %>% 
   mutate(rel_abund = count/sum(count)) %>% 
   ungroup() %>% 
@@ -56,7 +69,7 @@ mo_composite %>%
   summarise(total_re_abund = sum(rel_abund))
 
 mo_Rjoined_object <- mo_composite %>% 
-  pivot_longer(cols = c(all_of(taxlevels), "otu"), names_to = "level", values_to = "taxon") %>% 
+  pivot_longer(c(all_of(taxlevels), "otu", genus_otu), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon)
 
 
@@ -119,10 +132,20 @@ m3_rel_otutable <- m3_otutable %>%
   pivot_longer(-otu, names_to = "sample_id", values_to = "rel_abund") %>% 
   relocate(sample_id, .before = otu)
 
-taxonomy <- m3_taxonomy
+m3_glued_taxonomy <- m3_taxonomy %>% 
+  mutate(pretty_otu = str_replace(string = otu,
+                             pattern = "otu0*",
+                             replacement = "OTU "),
+        genus = str_replace(string = genus,
+                            pattern = "(.*)",
+                            replacement = "*\\1*"),
+        genus = str_replace(string = genus,
+                            pattern = "(.*)_unclassified*",
+                            replacement = "Unclassified<br>*\\1"),
+        genus_otu = glue("{genus}<br>({pretty_otu})"))
 
 m3_rel_composite <- inner_join(metadata, m3_rel_otutable, by = "sample_id") %>% 
-  inner_join( ., m3_taxonomy, by = "otu")
+  inner_join( ., m3_glued_taxonomy, by = "otu")
 
 cat("\nColumn names of the composite file\n")
 colnames(m3_rel_composite)
@@ -160,10 +183,20 @@ m3_read_based_otutable <-  m3_read_counts_otutable %>%
   ungroup() %>% 
   relocate(count, .before = rel_abund) 
 
-taxonomy <- m3_taxonomy
+m3_count_glued_taxonomy <- m3_taxonomy %>% 
+  mutate(pretty_otu = str_replace(string = otu,
+                             pattern = "otu0*",
+                             replacement = "OTU "),
+        genus = str_replace(string = genus,
+                            pattern = "(.*)",
+                            replacement = "*\\1*"),
+        genus = str_replace(string = genus,
+                            pattern = "(.*)_unclassified*",
+                            replacement = "Unclassified<br>*\\1"),
+        genus_otu = glue("{genus}<br>({pretty_otu})"))
 
 m3_read_count_composite <- inner_join(metadata, m3_read_based_otutable, by = "sample_id") %>% 
-  inner_join( ., m3_taxonomy, by = "otu")
+  inner_join( ., m3_count_glued_taxonomy, by = "otu")
 
 cat("\nColumn names of the composite file\n")
 colnames(m3_read_count_composite)
