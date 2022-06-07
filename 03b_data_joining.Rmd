@@ -40,16 +40,19 @@ mo_otu_counts <- mo_otutable %>%
   relocate(sample_id, .before = otu)
 
 mo_glued_taxonomy <- mo_taxonomy %>% 
+  # mutate(pretty_otu = str_replace(string = otu,
+  #                            pattern = "otu0*",
+  #                            replacement = "OTU "),
   mutate(pretty_otu = str_replace(string = otu,
-                             pattern = "otu0*",
-                             replacement = "OTU "),
+                             pattern = "phylo0*",
+                             replacement = "Phylotype "),
         genus = str_replace(string = genus,
                             pattern = "(.*)",
                             replacement = "*\\1*"),
         genus = str_replace(string = genus,
-                            pattern = "(.*)_unclassified*",
-                            replacement = "Unclassified<br>*\\1"),
-        genus_otu = glue("{genus}<br>({pretty_otu})"))
+                            pattern = "\\*(.*)_unclassified\\*",
+                            replacement = "Unclassified<br>*\\1*"),
+        genus_phylo = glue("{genus}<br>({pretty_otu})"))
 
 inner_join( mo_glued_taxonomy, mo_taxonomy, by = "otu")
   
@@ -69,7 +72,7 @@ mo_composite %>%
   summarise(total_re_abund = sum(rel_abund))
 
 mo_Rjoined_object <- mo_composite %>% 
-  pivot_longer(c(all_of(taxlevels), "otu", genus_otu), names_to = "level", values_to = "taxon") %>% 
+  pivot_longer(c(all_of(taxlevels), "otu", genus_phylo), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon)
 
 
@@ -134,15 +137,15 @@ m3_rel_otutable <- m3_otutable %>%
 
 m3_glued_taxonomy <- m3_taxonomy %>% 
   mutate(pretty_otu = str_replace(string = otu,
-                             pattern = "otu0*",
-                             replacement = "OTU "),
+                             pattern = "phylo0*",
+                             replacement = "Phylo "),
         genus = str_replace(string = genus,
                             pattern = "(.*)",
                             replacement = "*\\1*"),
         genus = str_replace(string = genus,
-                            pattern = "(.*)_unclassified*",
-                            replacement = "Unclassified<br>*\\1"),
-        genus_otu = glue("{genus}<br>({pretty_otu})"))
+                            pattern = "\\*(.*)_unclassified\\*",
+                            replacement = "Unclassified<br>*\\1*"),
+        genus_phylo = glue("{genus}<br>({pretty_otu})"))
 
 m3_rel_composite <- inner_join(metadata, m3_rel_otutable, by = "sample_id") %>% 
   inner_join( ., m3_glued_taxonomy, by = "otu")
@@ -193,7 +196,7 @@ m3_count_glued_taxonomy <- m3_taxonomy %>%
         genus = str_replace(string = genus,
                             pattern = "(.*)_unclassified*",
                             replacement = "Unclassified<br>*\\1"),
-        genus_otu = glue("{genus}<br>({pretty_otu})"))
+        genus_phylo = glue("{genus}<br>({pretty_otu})"))
 
 m3_read_count_composite <- inner_join(metadata, m3_read_based_otutable, by = "sample_id") %>% 
   inner_join( ., m3_count_glued_taxonomy, by = "otu")

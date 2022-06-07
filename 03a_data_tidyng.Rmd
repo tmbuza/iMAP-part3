@@ -20,10 +20,13 @@ load("../iMAP-part2/RDataRDS/final-bioinfo_objects.RData", verbose = T)
 
 
 ## Creating tidy `mothur` otu and taxonomy tables {#mothur-otu-taxonomy}
+> Using phylotype data
+
 ```{r}
 library(tidyverse)
-mo_otutable_long <- mo_shared_table %>% 
-  select(-label, -numOtus) %>% 
+mo_otutable_long <- mo_phylo_shared_table %>% 
+  # select(-label, -numOtus) %>% 
+  select(-label, -numPhylos) %>% 
   rename(sample_id = Group) %>% 
   rename_all(tolower) %>% 
   pivot_longer(-sample_id, names_to="otu", values_to="count") %>% 
@@ -42,7 +45,7 @@ saveRDS(mo_otutable, "RDataRDS/mo_otutable.rds")
 
 
 taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus")
-mo_taxonomy <- mo_cons_taxonomy %>%
+mo_taxonomy <- mo_phylo_cons_taxonomy %>%
   rename_all(tolower) %>%
   select(otu, taxonomy) %>%
   mutate(otu = tolower(otu),
