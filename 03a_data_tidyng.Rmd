@@ -20,13 +20,16 @@ load("../iMAP-part2/RDataRDS/final-bioinfo_objects.RData", verbose = T)
 
 
 ## Creating tidy `mothur` otu and taxonomy tables {#mothur-otu-taxonomy}
-> Using phylotype data
+<!-- > Using OTU data -->
+> Using Phylotype data
+<!-- > Using ASV data -->
 
 ```{r}
 library(tidyverse)
 mo_otutable_long <- mo_phylo_shared_table %>% 
   # select(-label, -numOtus) %>% 
-  select(-label, -numPhylos) %>% 
+  select(-label, -numPhylos) %>%
+  # select(-label, -numASVs) %>% 
   rename(sample_id = Group) %>% 
   rename_all(tolower) %>% 
   pivot_longer(-sample_id, names_to="otu", values_to="count") %>% 
