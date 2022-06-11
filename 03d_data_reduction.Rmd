@@ -25,8 +25,8 @@ load("RDataRDS/phyloseq_objects.RData", verbose = T)
 library(phyloseq)
 library(microbiome)
 
-ps_raw <- ps_mo_raw
-ps_rel <- ps_mo_rel
+ps_raw <- ps_raw
+ps_rel <- ps_rel
 ```
 
 ```{block, type="tmbinfo", echo=T}
