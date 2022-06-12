@@ -19,12 +19,7 @@ load("../iMAP-part2/RDataRDS/final-bioinfo_objects.RData", verbose = T)
 ```
 
 
-## Creating tidy `mothur` otu and taxonomy tables {#mothur-otu-taxonomy}
-<!-- > Using OTU data -->
-> Using Phylotype data
-<!-- > Using ASV data -->
-
-### Phylotype shared data
+## Creating tidy phylotype shared data
 ```{r}
 library(tidyverse)
 otutable_long <- mo_phylo_shared_table %>%
@@ -69,12 +64,11 @@ head(taxonomy)[, 1:4] %>% as.data.frame()
 saveRDS(taxonomy, "RDataRDS/phylo_taxonomy.rds")
 
 save(otutable, otutable_long, taxonomy, file = "RDataRDS/phylo_taxonomy_objects.RData")
-save(otutable, otutable_long, taxonomy, file = "RDataRDS/saved_objects.RData")
 ```
 
 
-### OPTI shared data
-```{r eval=FALSE, include=FALSE}
+##Creating tidy optimized shared data
+```{r}
 library(tidyverse)
 otutable_long <- mo_opti_shared_table %>%
   rename_all(tolower) %>% 
@@ -118,10 +112,9 @@ head(taxonomy)[, 1:4] %>% as.data.frame()
 saveRDS(taxonomy, "RDataRDS/opti_taxonomy.rds")
 
 save(otutable, otutable_long, taxonomy, file = "RDataRDS/opti_taxonomy_objects.RData")
-resave(otutable, otutable_long, taxonomy, file = "RDataRDS/saved_objects.RData")
 ```
 
-### ASV shared data
+## Creating tidy ASV shared data
 ```{r eval=FALSE, include=FALSE}
 library(tidyverse)
 otutable_long <- mo_asv_shared_table %>%
@@ -162,7 +155,6 @@ head(taxonomy)[, 1:4] %>% as.data.frame()
 saveRDS(taxonomy, "RDataRDS/asv_taxonomy.rds")
 
 save(otutable, otutable_long, taxonomy, file = "RDataRDS/asv_taxonomy_objects.RData")
-resave(otutable, otutable_long, taxonomy, file = "RDataRDS/saved_objects.RData")
 ```
 
 
@@ -227,7 +219,6 @@ head(q2_taxonomy)[, 1:3] %>% as.data.frame()
 saveRDS(q2_taxonomy, "RDataRDS/q2_taxonomy.rds")
 
 save(q2_otutable, q2_taxonomy, file = "RDataRDS/q2_otu_taxonomy_objects.RData")
-resave(q2_otutable, q2_taxonomy, file = "RDataRDS/saved_objects.RData")
 ```
 
 
@@ -256,7 +247,6 @@ m3_taxa_abund <- m3_merged_abund_table %>%
   separate(taxonomy, into = all_of(taxlevels), sep = "\\|") 
 
 saveRDS(m3_taxa_abund, "RDataRDS/m3_taxa_abund.rds")
-resave(m3_taxa_abund, file = "RDataRDS/saved_objects.RData")
 
 m3_otutable <- m3_taxa_abund %>% 
   select(-all_of(taxlevels))
@@ -277,7 +267,6 @@ head(m3_taxonomy)[, 1:4] %>% as.data.frame()
 saveRDS(m3_taxonomy, "RDataRDS/m3_taxonomy.rds")
 
 save(m3_otutable, m3_taxonomy, file = "RDataRDS/m3_otu_taxonomy_objects.RData")
-resave(m3_otutable, m3_taxonomy, file = "RDataRDS/saved_objects.RData")
 ```
 
 
@@ -320,7 +309,6 @@ head(m3_read_counts_taxonomy)[, 1:4] %>% as.data.frame()
 saveRDS(m3_read_counts_taxonomy, "RDataRDS/m3_read_counts_taxonomy.rds")
 
 resave(m3_read_counts_otutable, m3_read_counts_taxonomy, file = "RDataRDS/m3_otu_taxonomy_objects.RData")
-resave(m3_read_counts_otutable, m3_read_counts_taxonomy, file = "RDataRDS/saved_objects.RData")
 ```
 
 

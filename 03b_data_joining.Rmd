@@ -20,6 +20,9 @@ load("../iMAP-part1/RDataRDS/metadata_objects.RData", verbose = T)
 
 cat("\nOtu and taxonomy tables\n\n")
 load("RDataRDS/phylo_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/opti_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/q2_otu_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/m3_otu_taxonomy_objects.RData", verbose = T)
 ```
 
 ## Creating R objects from `mothur` output {#mothur-composite}
@@ -84,11 +87,97 @@ Rjoined_object <- composite %>%
 
 
 saveRDS(composite, "RDataRDS/composite.rds")
-save(Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
+save(composite, Rjoined_object, file = "RDataRDS/Rjoined_objects.RData")
 save(composite, Rjoined_object, file = "RDataRDS/saved_objects.RData")
 ```
 
+## Preparing data for statistical analysis {#stats-data}
+```{r subsample}
+metadata <- readRDS("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/RDataRDS/mo_metadata.rds") %>% 
+  select(sample_id, group = isolate) %>% 
+  drop_na(group)
 
+phylo_sub_counts_long <- read_tsv("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/data/final.tx.1.subsample.shared", show_col_types = F) %>%
+  rename_all(tolower) %>% 
+  select(-label, -numotus, sample_id = group, starts_with("phylo")) %>%
+  pivot_longer(-sample_id, names_to="otu", values_to="count") %>% 
+  filter(count != 0)
+saveRDS(phylo_sub_counts_long, "RDataRDS/phylo_sub_counts_long.rds")
+
+otutable <- phylo_sub_counts_long %>%
+  pivot_wider(id_cols = otu, names_from = sample_id, values_from = count) %>%
+  mutate_if(is.numeric, ~replace(., is.na(.), 0))
+
+paste("Dimension of the phylotype subsample table table is", 
+      dim(otutable)[1], "rows and", 
+      dim(otutable)[2], "columns") 
+saveRDS(otutable, "RDataRDS/phylo_sub_table.rds")
+
+
+nseqs_per_sample <- phylo_sub_counts_long %>% 
+  group_by(sample_id) %>% 
+  summarise(N = sum(count), .groups = "drop") %>% 
+  count(N) %>% 
+  pull(N)
+
+stopifnot(length(nseqs_per_sample) == 1)
+
+lod <- 100*1/nseqs_per_sample
+
+
+taxlevels <- c("kingdom", "phylum", "class", "order", "family", "genus")
+taxonomy <- read_tsv("~/Dropbox/CDILLC/GIT_REPOS/smda-end2end/data/final.tx.1.cons.taxonomy", show_col_types = F) %>%
+  rename_all(tolower) %>%
+  select(otu, taxonomy) %>%
+  mutate(otu = tolower(otu),
+         taxonomy = str_replace_all(taxonomy, "\\(\\d+\\)", ""),
+         taxonomy = str_replace_all(taxonomy, ";$", "")) %>%
+  mutate(pretty_otu = str_replace(string = otu,
+                         pattern = "phylo0*",
+                         replacement = "Phylotype ")) %>%
+  relocate(pretty_otu, .after = "otu") %>%
+  separate(taxonomy, into = all_of(taxlevels), sep = ";")
+
+paste("Dimension of the taxonomy table is",
+      dim(taxonomy)[1], "rows and",
+      dim(taxonomy)[2], "columns")
+
+head(taxonomy)[, 1:4] %>% as.data.frame()
+saveRDS(taxonomy, "RDataRDS/sub_phylo_taxonomy.rds")
+
+
+sub_composite <- inner_join(metadata, phylo_sub_counts_long, by = "sample_id") %>% 
+  inner_join(., taxonomy, by = "otu") %>% 
+  group_by(sample_id) %>% 
+  mutate(rel_abund = count/sum(count)) %>% 
+  ungroup() %>% 
+  relocate(count, .before = rel_abund) 
+
+colnames(sub_composite)
+
+## Confirm that rel abund adds to 1 (100%)
+sub_composite %>% 
+  group_by(sample_id) %>% 
+  summarise(total_re_abund = sum(rel_abund))
+
+## Create tidy R object
+Rjoined_sub_object <- sub_composite %>% 
+  pivot_longer(c(all_of(taxlevels)), names_to = "level", values_to = "taxon") %>% 
+  relocate(rel_abund, .after = taxon) %>% 
+  mutate(taxon = str_replace(string = taxon,
+                            pattern = "(.*)",
+                            replacement = "*\\1*"),
+        taxon = str_replace(string = taxon,
+                            pattern = "\\*(.*)_unclassified\\*",
+                            replacement = "Unclassified<br>*\\1*"),
+        taxon = str_replace_all(taxon, "_", " "),
+        taxon_phylo = glue("{taxon}<br>({pretty_otu})"))
+
+
+saveRDS(sub_composite, "RDataRDS/sub_composite.rds")
+resave(sub_composite, Rjoined_sub_object, file = "RDataRDS/Rjoined_objects.RData")
+resave(sub_composite, Rjoined_sub_object, file = "RDataRDS/saved_objects.RData")
+```
 
 ## Creating R objects from `qiime2` output {#qiime2-composite}
 ```{r}
