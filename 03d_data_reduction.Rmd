@@ -21,6 +21,8 @@ library(tidyverse, suppressPackageStartupMessages())
 cat("\nPhyloseq objects\n\n")
 load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
+
+
 ```{r}
 library(phyloseq)
 library(microbiome)

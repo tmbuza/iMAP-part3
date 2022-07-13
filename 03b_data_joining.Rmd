@@ -15,12 +15,9 @@ source("R/common.R")
 library(tidyverse)
 library(glue)
 
-cat("Metadata\n\n")
 load("../iMAP-part1/RDataRDS/metadata_objects.RData", verbose = T)
-
-cat("\nOtu and taxonomy tables\n\n")
-load("RDataRDS/phylo_taxonomy_objects.RData", verbose = T)
-load("RDataRDS/opti_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/phylo_otu_taxonomy_objects.RData", verbose = T)
+# load("RDataRDS/opti_otu_taxonomy_objects.RData", verbose = T)
 load("RDataRDS/q2_otu_taxonomy_objects.RData", verbose = T)
 load("RDataRDS/m3_otu_taxonomy_objects.RData", verbose = T)
 ```
@@ -65,7 +62,7 @@ composite <- inner_join(metadata, otu_counts, by = "sample_id") %>%
   ungroup() %>% 
   relocate(count, .before = rel_abund) 
 
-paste("Column names", colnames(composite))
+colnames(composite)
 
 ## Confirm that rel abund adds to 1 (100%)
 composite %>% 
@@ -74,7 +71,7 @@ composite %>%
 
 ## Create tidy R object
 Rjoined_object <- composite %>% 
-  pivot_longer(c(all_of(taxlevels), "otu"), names_to = "level", values_to = "taxon") %>% 
+  pivot_longer(c(all_of(taxlevels), otu), names_to = "level", values_to = "taxon") %>% 
   relocate(rel_abund, .after = taxon) %>% 
   mutate(taxon = str_replace(string = taxon,
                             pattern = "(.*)",
@@ -335,7 +332,7 @@ cat("Metadata\n\n")
 load("../iMAP-part1/RDataRDS/metadata_objects.RData", verbose = T)
 
 cat("\nOtu and taxonomy tables\n\n")
-load("RDataRDS/phylo_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/phylo_otu_taxonomy_objects.RData", verbose = T)
 ```
 
 ## Using `mothur` output {#mothur-physeq}

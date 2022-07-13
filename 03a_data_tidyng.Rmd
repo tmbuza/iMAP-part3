@@ -9,17 +9,17 @@
  - Microbial profiles files from `metaphlan` pipeline.
 
 ## Import libraries and data
-```{r}
+```{r message=FALSE, warning=FALSE}
 set.seed(110912)
 source("R/common.R")
 library(tidyverse, suppressPackageStartupMessages())
 
-cat("Final bioinformatics objects\n\n")
 load("../iMAP-part2/RDataRDS/final-bioinfo_objects.RData", verbose = T)
+mo_phylo_shared_table
 ```
 
 
-## Creating tidy phylotype shared data
+## Shared and taxonomy tables
 ```{r}
 library(tidyverse)
 otutable_long <- mo_phylo_shared_table %>%
@@ -29,7 +29,7 @@ otutable_long <- mo_phylo_shared_table %>%
   rename_all(tolower) %>% 
   pivot_longer(-sample_id, names_to="otu", values_to="count") %>% 
   filter(count != 0)
-saveRDS(otutable_long, "RDataRDS/phylo_table_long.rds")
+saveRDS(otutable_long, "RDataRDS/phylo_otutable_long.rds")
 
 otutable <- otutable_long %>%
   pivot_wider(id_cols = otu, names_from = sample_id, values_from = count) %>%
@@ -63,11 +63,11 @@ paste("Dimension of the taxonomy table is",
 head(taxonomy)[, 1:4] %>% as.data.frame() 
 saveRDS(taxonomy, "RDataRDS/phylo_taxonomy.rds")
 
-save(otutable, otutable_long, taxonomy, file = "RDataRDS/phylo_taxonomy_objects.RData")
+save(otutable, otutable_long, taxonomy, file = "RDataRDS/phylo_otu_taxonomy_objects.RData")
 ```
 
 
-##Creating tidy optimized shared data
+## Tidy optimized shared data
 ```{r}
 library(tidyverse)
 otutable_long <- mo_opti_shared_table %>%
@@ -111,10 +111,10 @@ paste("Dimension of the taxonomy table is",
 head(taxonomy)[, 1:4] %>% as.data.frame() 
 saveRDS(taxonomy, "RDataRDS/opti_taxonomy.rds")
 
-save(otutable, otutable_long, taxonomy, file = "RDataRDS/opti_taxonomy_objects.RData")
+save(otutable, otutable_long, taxonomy, file = "RDataRDS/opti_otu_taxonomy_objects.RData")
 ```
 
-## Creating tidy ASV shared data
+## Tidy ASV shared data
 ```{r eval=FALSE, include=FALSE}
 library(tidyverse)
 otutable_long <- mo_asv_shared_table %>%
@@ -154,13 +154,13 @@ paste("Dimension of the taxonomy table is",
 head(taxonomy)[, 1:4] %>% as.data.frame() 
 saveRDS(taxonomy, "RDataRDS/asv_taxonomy.rds")
 
-save(otutable, otutable_long, taxonomy, file = "RDataRDS/asv_taxonomy_objects.RData")
+save(otutable, otutable_long, taxonomy, file = "RDataRDS/asv_otu_taxonomy_objects.RData")
 ```
 
 
 
 
-## Creating tidy `qiime2` taxa abundance table {#qiime2-otu-taxonomy}
+## Tidy `qiime2` taxa abundance table {#qiime2-otu-taxonomy}
 - Here we read through the merged feature-taxonomy-abundance table and extract abundance at a taxon lineage.
 - The demo below extract and split abundance at genus-lineage.
 - Additional processing is also done to create a tidy dataframe.
@@ -222,7 +222,7 @@ save(q2_otutable, q2_taxonomy, file = "RDataRDS/q2_otu_taxonomy_objects.RData")
 ```
 
 
-## Creating tidy `metaphlan` relative abundance and taxonomy tables {#m3-otu-taxonomy}
+## Tidy `metaphlan` relative abundance and taxonomy tables {#m3-otu-taxonomy}
 - Here we read through the merged abundance table and extract abundance at a taxon lineage.
 - The demo below extract and split abundance at genus-lineage and add code each row to a unique OTU ID.
 - Additional processing is also done to create a tidy dataframe.
@@ -310,7 +310,3 @@ saveRDS(m3_read_counts_taxonomy, "RDataRDS/m3_read_counts_taxonomy.rds")
 
 resave(m3_read_counts_otutable, m3_read_counts_taxonomy, file = "RDataRDS/m3_otu_taxonomy_objects.RData")
 ```
-
-
-
-
