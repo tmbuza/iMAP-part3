@@ -316,12 +316,13 @@ resave(m3_read_count_Rjoined_object, file = "RDataRDS/saved_objects.RData")
 load("RDataRDS/Rjoined_objects.RData", verbose = T)
 ```
 
-## Creating joined pyloseq objects {#phyloseq-objects}
+# Pyloseq objects {#phyloseq-objects}
 
 ## Prerequisite
 - Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
 - Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
 - Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
+- Synthetic tidy data
 
 ## Load libraries and data
 ```{r message=FALSE, warning=FALSE}
@@ -333,6 +334,8 @@ load("../iMAP-part1/RDataRDS/metadata_objects.RData", verbose = T)
 
 cat("\nOtu and taxonomy tables\n\n")
 load("RDataRDS/phylo_otu_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/q2_otu_taxonomy_objects.RData", verbose = T)
+load("RDataRDS/m3_otu_taxonomy_objects.RData", verbose = T)
 ```
 
 ## Using `mothur` output {#mothur-physeq}
@@ -350,10 +353,13 @@ ps_raw <- merge_phyloseq(ps_metadata, ps_otutable, ps_taxonomy)
 
 ps_taxa_tree = rtree(ntaxa(ps_raw), rooted=TRUE, tip.label=taxa_names(ps_raw))
 
+## Optionally view the tree before merging to ps object
+# plot(ps_taxa_tree) 
+
 ps_raw <- phyloseq::merge_phyloseq(ps_raw, ps_taxa_tree)
-ps_raw
 ps_rel <- phyloseq::transform_sample_counts(ps_raw, function(x){x / sum(x)})
 
+ps_raw
 save(ps_raw, ps_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
@@ -378,12 +384,13 @@ ps_q2_taxonomy <- as.matrix(q2_taxonomy %>% tibble::column_to_rownames("feature"
 ps_q2 <- merge_phyloseq(ps_q2_metadata, ps_q2_otutable, ps_q2_taxonomy)
 
 ps_q2_taxa_tree = rtree(ntaxa(ps_q2), rooted=TRUE, tip.label=taxa_names(ps_q2))
+## Optionally view the tree before merging to ps object
+# plot(ps_q2_taxa_tree) 
 
 ps_q2_raw <- phyloseq::merge_phyloseq(ps_q2, ps_q2_taxa_tree)
-ps_q2_raw
-
 ps_q2_rel <- phyloseq::transform_sample_counts(ps_q2_raw, function(x){x / sum(x)})
 
+ps_q2_raw
 resave(ps_q2_raw, ps_q2_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
 
@@ -406,17 +413,104 @@ ps_m3_taxonomy <- as.matrix(m3_read_counts_taxonomy %>% tibble::column_to_rownam
 ps_m3 <- merge_phyloseq(ps_m3_metadata, ps_m3_otutable, ps_m3_taxonomy)
 
 ps_m3_taxa_tree = rtree(ntaxa(ps_m3), rooted=TRUE, tip.label=taxa_names(ps_m3))
+# plot(ps_m3_taxa_tree)
 
 ps_m3_raw <- phyloseq::merge_phyloseq(ps_m3, ps_m3_taxa_tree)
-ps_m3_raw
-
 ps_m3_rel <- phyloseq::transform_sample_counts(ps_m3_raw, function(x){x / sum(x)})
 
+ps_m3_raw
 resave(ps_m3_raw, ps_m3_rel,  file = "RDataRDS/phyloseq_objects.RData")
 ```
+
+## Synthetic phyloseq data
+```{r}
+library("phyloseq")
+library("tidyverse")
+library("glue")
+set.seed(2022)
+
+# Toy otu table
+toy_otu_mtx <- matrix(sample(1:1000, 100, replace = TRUE), nrow = 10, ncol = 10)
+rownames(toy_otu_mtx) <- paste0("OTU", 1:nrow(toy_otu_mtx))
+colnames(toy_otu_mtx) <- paste0("Sample", 1:ncol(toy_otu_mtx))
+
+# Toy taxonomy table
+toy_tax_mtx <- matrix(sample(letters, 70, replace = TRUE), nrow = nrow(toy_otu_mtx), ncol = 7)
+rownames(toy_tax_mtx) <- rownames(toy_otu_mtx)
+colnames(toy_tax_mtx) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+
+# Basic phyloseq object
+OTU <- otu_table(toy_otu_mtx, taxa_are_rows <- TRUE)
+TAX <- tax_table(toy_tax_mtx)
+ps_toy <- phyloseq(OTU, TAX)
+
+# Toy metadata
+toy_metadata <- sample_data(
+  data.frame(Var1 = sample(LETTERS[1:2],
+                               size=nsamples(ps_toy), 
+                               replace=TRUE),
+             Var2 = sample(LETTERS[5:7],
+                               size=nsamples(ps_toy), 
+                               replace=TRUE),
+             row.names = sample_names(ps_toy),
+             stringsAsFactors = FALSE))
+toy_metadata$Var2 <- paste(toy_metadata$Var1, toy_metadata$Var2, sep="_")
+
+ps_toy <- merge_phyloseq(toy_metadata, ps_toy)
+
+# Toy tree
+library("ape")
+ps_toy_taxa_tree = rtree(ntaxa(ps_toy), rooted=TRUE, tip.label=taxa_names(ps_toy))
+# plot(ps_toy_taxa_tree)
+
+ps_toy_raw <- phyloseq::merge_phyloseq(ps_toy, ps_toy_taxa_tree)
+ps_toy_rel <- phyloseq::transform_sample_counts(ps_toy_raw, function(x){x / sum(x)})
+
+ps_toy_raw
+resave(ps_toy_raw, ps_toy_rel,  file = "RDataRDS/phyloseq_objects.RData")
+```
+
 
 
 ## Review saved phyloseq objects
 ```{r}
 load("RDataRDS/phyloseq_objects.RData", verbose = T)
 ```
+
+
+```{r eval=FALSE, fig.height=10, fig.width=10, include=FALSE}
+## Quick glimpse on ps tree <-- See iMAP-part4, 5d...
+load("RDataRDS/phyloseq_objects.RData")
+
+plot_tree(ps_raw, 
+          color="isolate", 
+          label.tips="taxa_names", 
+          ladderize="left", 
+          plot.margin=0.3)
+plot_heatmap(ps_raw)
+plot_tree(ps_q2_raw, 
+          color="isolate", 
+          label.tips="taxa_names", 
+          ladderize="left", 
+          plot.margin=0.3)
+plot_heatmap(ps_q2_raw)
+plot_tree(ps_m3_raw, 
+          color="platform", 
+          shape="direction", 
+          label.tips="taxa_names", 
+          ladderize="left", 
+          plot.margin=0.3)
+plot_heatmap(ps_m3_raw)
+plot_tree(ps_toy_raw, 
+          color="Var2", 
+          shape="Var1", 
+          label.tips="taxa_names", 
+          ladderize="left", 
+          plot.margin=0.3)
+plot_heatmap(ps_toy_raw)
+```
+
+
+
+
+
