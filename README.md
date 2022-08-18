@@ -2,7 +2,7 @@
 
 # Exploratory Analysis of Microbiome Data
 
-![Microbiome Data Processing in R.](img/part3_flow.png)
+<!-- ![Microbiome Data Processing in R.](img/part3_flow.png) -->
 
 <br>
 
