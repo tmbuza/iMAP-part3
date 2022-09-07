@@ -1,6 +1,6 @@
 ...IN PROGRESS...
 
-# Exploratory Analysis of Microbiome Data
+# Microbiome Data Processing
 
 <!-- ![Microbiome Data Processing in R.](img/part3_flow.png) -->
 
