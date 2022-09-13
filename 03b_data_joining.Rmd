@@ -319,9 +319,9 @@ load("RDataRDS/Rjoined_objects.RData", verbose = T)
 # Pyloseq objects {#phyloseq-objects}
 
 ## Prerequisite
-- Tidy metadata created in [PART 1](https://github.com/tmbuza/iMAP-part1/).
-- Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
-- Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/iMAP-part2/).
+- Tidy metadata created in [PART 1](https://github.com/tmbuza/microbiome-part1/).
+- Tidy microbial abundance table created in [PART 2](https://github.com/tmbuza/microbiome-part2/).
+- Tidy taxonomy table created in [PART 2](https://github.com/tmbuza/microbiome-part2/).
 - Synthetic tidy data
 
 ## Load libraries and data
@@ -479,7 +479,7 @@ load("RDataRDS/phyloseq_objects.RData", verbose = T)
 
 
 ```{r eval=FALSE, fig.height=10, fig.width=10, include=FALSE}
-## Quick glimpse on ps tree <-- See iMAP-part4, 5d...
+## Quick glimpse on ps tree <-- See microbiome-part4, 5d...
 load("RDataRDS/phyloseq_objects.RData")
 
 plot_tree(ps_raw, 
@@ -511,6 +511,62 @@ plot_heatmap(ps_toy_raw)
 ```
 
 
+# Hypertension Data 
+- The code below is in R/genus_process.R
+- Use source("R/genus_process.R") to load it
+
+```{r}
+library(tidyverse)
+library(broom)
+library(ggtext)
+library(data.table)
+
+set.seed(2022)
+
+shared <- read_csv("../Datasets/HypertensionProject.csv", show_col_types = F) %>%
+  dplyr::select(1, Prevotella:ncol(.)) %>%
+  transpose(keep.names = "taxonomy", make.names = "SampleID") %>%
+  # select(taxonomy, starts_with("ERR")) %>%
+  pivot_longer(-taxonomy, names_to="sample_id", values_to="rel_abund") %>%
+  relocate(sample_id)
+
+metabolites <- read_csv("../Datasets/HypertensionProject.csv", show_col_types = F) %>%
+  dplyr::select(c(1,5:18 )) %>%
+  transpose(keep.names = "metabopwy", make.names = "SampleID") %>%
+  # select(metabopwy, starts_with("ERR")) %>%
+  pivot_longer(-metabopwy, names_to="sample_id", values_to="value") %>%
+  relocate(sample_id)
+
+taxonomy <- read_tsv("../Datasets/mo_demodata/baxter.cons.taxonomy", show_col_types = F) %>%
+  rename_all(tolower) %>%
+  select(otu, taxonomy) %>%
+  mutate(otu = tolower(otu),
+         taxonomy = str_replace_all(taxonomy, "\\(\\d+\\)", ""),
+         taxonomy = str_replace(taxonomy, ";unclassified", "_unclassified"),
+         taxonomy = str_replace_all(taxonomy, ";unclassified", ""),
+         taxonomy = str_replace_all(taxonomy, ";$", ""),
+         taxonomy = str_replace_all(taxonomy, ".*;", "")
+  )
+
+metadata <- read_csv("../Datasets/HypertensionProject.csv", show_col_types = F) %>%
+  dplyr::select(c(1:3)) %>%
+  mutate(dsestate = Disease_State == "HTN" | Disease_State == "pHTN",
+         control = Disease_State == "Control") %>%
+  rename(sample_id = SampleID)
+
+## Data joining
+
+composite <- inner_join(shared, metadata, by="sample_id")
+
+metabo_composite <- inner_join(shared, metabolites, by="sample_id") %>%
+  group_by(sample_id, metabopwy) %>%
+  summarise(value = sum(value), .groups="drop") %>%
+  group_by(sample_id) %>%
+  mutate(metabo_rel_abund = value / sum(value)) %>%
+  ungroup() %>%
+  select(-value) %>%
+  inner_join(., metadata, by="sample_id")
+```
 
 
 

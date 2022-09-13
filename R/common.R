@@ -65,6 +65,9 @@ library(ape)
 if(!require("metagMisc")) {install.packages("metagMisc")}
 library(metagMisc)
 
+if(!require("microbiome")) {BiocManager::install("microbiome")}
+library(microbiome)
+
 if(!require("gifski")) {install.packages("gifski")}
 library(gifski)
 
